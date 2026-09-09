@@ -8,7 +8,7 @@ exports.handler = async (event) => {
   try {
     const body = JSON.parse(event.body || '{}');
     jobId = body.jobId;
-    const script = body.script;
+    const scriptAvecPauses = script.replace(/\[[^\]]*\]/g, '<break time="1.5s" />');
 
     if (!script || !jobId) return;
 
@@ -27,7 +27,7 @@ exports.handler = async (event) => {
         'Content-Type': 'application/json'
       },
       body: JSON.stringify({
-        text: script,
+        text: scriptAvecPauses,
         model_id: 'eleven_multilingual_v2',
         voice_settings: { stability: 0.6, similarity_boost: 0.8, speed: 0.8 }
       })
