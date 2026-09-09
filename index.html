@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Auto-hypnose personnalisée</title>
+<title>Votre séance d'auto-hypnose</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=Work+Sans:wght@400;500;600&display=swap" rel="stylesheet">
@@ -25,69 +25,43 @@
     margin: 0; background: var(--ivoire); color: var(--texte);
     font-family: 'Work Sans', sans-serif; min-height: 100vh; line-height: 1.55;
   }
-  h1, h2, h3 { font-family: 'Fraunces', serif; font-weight: 500; margin: 0; }
-  .wrap { max-width: 640px; margin: 0 auto; padding: 40px 24px 80px; }
-  .hero { text-align: center; padding: 24px 0 36px; position: relative; }
+  h1, h3 { font-family: 'Fraunces', serif; font-weight: 500; margin: 0; }
+  .wrap { max-width: 480px; margin: 0 auto; padding: 60px 24px 80px; }
+  .hero { text-align: center; padding: 24px 0 36px; }
   .breath {
     width: 84px; height: 84px; margin: 0 auto 20px; border-radius: 50%;
     background: radial-gradient(circle at 35% 30%, var(--lavande-pale), var(--lavande) 75%);
     box-shadow: 0 0 0 1px var(--or) inset; animation: pulse 4.5s ease-in-out infinite;
   }
   @keyframes pulse { 0%, 100% { transform: scale(0.92); opacity: 0.85; } 50% { transform: scale(1.08); opacity: 1; } }
-  .breath.calme { animation-duration: 4.5s; }
   .breath.actif { animation-duration: 4.5s; }
-  .hero h1 { font-size: 28px; color: var(--lavande-fonce); letter-spacing: 0.2px; }
+  .hero h1 { font-size: 26px; color: var(--lavande-fonce); }
   .hero p { color: var(--texte-doux); font-size: 15px; margin-top: 8px; }
-  .tabs {
-    display: flex; justify-content: center; gap: 4px; margin-bottom: 32px;
-    background: var(--lavande-pale); border-radius: 999px; padding: 4px;
-    width: fit-content; margin-left: auto; margin-right: auto;
-  }
-  .tab {
-    border: none; background: transparent; padding: 9px 22px; border-radius: 999px;
-    font-family: 'Work Sans', sans-serif; font-size: 14px; font-weight: 500;
-    color: var(--lavande-fonce); cursor: pointer; transition: background 0.2s ease;
-  }
-  .tab.active { background: var(--panel); box-shadow: 0 1px 3px rgba(91,76,114,0.15); }
-  .panel { display: none; }
-  .panel.active { display: block; }
-  .card { background: var(--panel); border: 1px solid #EDE6F4; border-radius: var(--radius); padding: 26px; margin-bottom: 20px; }
-  .step-label { font-size: 13px; color: var(--or); font-weight: 600; margin-bottom: 6px; }
-  .card h3 { font-size: 18px; color: var(--texte); margin-bottom: 4px; }
+  .card { background: var(--panel); border: 1px solid #EDE6F4; border-radius: var(--radius); padding: 26px; margin-bottom: 20px; text-align: center; }
+  .card h3 { font-size: 18px; margin-bottom: 4px; }
   .card .desc { color: var(--texte-doux); font-size: 13.5px; margin-bottom: 16px; }
-  label { display: block; font-size: 13.5px; font-weight: 500; margin-bottom: 6px; color: var(--texte); }
-  input[type=text], textarea {
+  .field { margin-bottom: 14px; text-align: left; }
+  label { display: block; font-size: 13.5px; font-weight: 500; margin-bottom: 6px; }
+  input[type=text] {
     width: 100%; border: 1px solid #DED4E8; border-radius: 10px; padding: 11px 13px;
-    font-family: 'Work Sans', sans-serif; font-size: 14.5px; background: #FFFEFC; color: var(--texte); resize: vertical;
+    font-family: 'Work Sans', sans-serif; font-size: 14.5px; background: #FFFEFC; color: var(--texte);
+    text-transform: uppercase; text-align: center; letter-spacing: 2px;
   }
-  input:focus, textarea:focus { outline: none; border-color: var(--lavande); box-shadow: 0 0 0 3px var(--lavande-pale); }
-  textarea.notes { min-height: 110px; }
-  textarea.script { min-height: 220px; line-height: 1.6; }
-  .field { margin-bottom: 14px; }
+  input:focus { outline: none; border-color: var(--lavande); box-shadow: 0 0 0 3px var(--lavande-pale); }
   button.primary {
     background: var(--lavande-fonce); color: #FBF8FF; border: none; border-radius: 10px;
     padding: 12px 20px; font-family: 'Work Sans', sans-serif; font-size: 14.5px; font-weight: 500; cursor: pointer;
-    transition: background 0.15s ease;
+    transition: background 0.15s ease; width: 100%;
   }
   button.primary:hover:not(:disabled) { background: var(--lavande); }
   button.primary:disabled { background: #C9C0D4; cursor: not-allowed; }
-  button.ghost {
-    background: transparent; border: 1px solid #DED4E8; color: var(--lavande-fonce); border-radius: 10px;
-    padding: 11px 18px; font-family: 'Work Sans', sans-serif; font-size: 14px; cursor: pointer;
-  }
-  button.ghost:hover { background: var(--lavande-pale); }
-  .hint { font-size: 12.5px; color: var(--texte-doux); margin-top: 6px; }
   .error { background: #FBEEEA; border: 1px solid #E9C9BC; color: var(--erreur); padding: 11px 14px; border-radius: 10px; font-size: 13.5px; margin-top: 12px; }
-  .progress { background: #F1EEF8; border: 1px solid var(--lavande-pale); color: var(--lavande-fonce); padding: 11px 14px; border-radius: 10px; font-size: 13.5px; margin-top: 12px; }
-  .success { background: #F1EEF8; border: 1px solid var(--lavande-pale); border-radius: 10px; padding: 16px; margin-top: 14px; }
-  .success .code { font-family: 'Fraunces', serif; font-size: 26px; color: var(--lavande-fonce); letter-spacing: 3px; margin: 6px 0 10px; }
   audio { width: 100%; margin-top: 10px; }
   .spinner {
     display: inline-block; width: 14px; height: 14px; border: 2px solid rgba(255,255,255,0.4);
     border-top-color: #fff; border-radius: 50%; animation: spin 0.7s linear infinite; margin-right: 8px; vertical-align: -2px;
   }
   @keyframes spin { to { transform: rotate(360deg); } }
-  .client-center { text-align: center; }
   .client-greet { font-size: 20px; color: var(--lavande-fonce); margin-bottom: 6px; }
   .client-sub { color: var(--texte-doux); font-size: 14px; margin-bottom: 24px; }
 </style>
@@ -96,253 +70,34 @@
 <div class="wrap">
 
   <div class="hero">
-    <div class="breath calme" id="breath"></div>
-    <h1>Auto-hypnose personnalisée</h1>
-    <p>Un accompagnement conçu pour chaque parcours, dans votre voix.</p>
+    <div class="breath" id="breath"></div>
+    <h1>Votre séance</h1>
+    <p>Entrez le code transmis par votre praticienne.</p>
   </div>
 
-  <div class="tabs">
-    <button class="tab active" data-tab="pro">Praticienne</button>
-    <button class="tab" data-tab="client">Client</button>
+  <div class="card" id="cardAccess">
+    <div class="field">
+      <label for="accessCode">Code d'accès</label>
+      <input type="text" id="accessCode" placeholder="ex. A3F9K2">
+    </div>
+    <button class="primary" onclick="accederSeance()" id="btnAccess">Accéder à ma séance</button>
+    <div id="clientError"></div>
   </div>
 
-  <div class="panel active" id="panel-pro">
-    <div class="card">
-      <div class="step-label">Étape 1</div>
-      <h3>Le suivi du client</h3>
-      <div class="desc">Notez le prénom et collez votre analyse de suivi.</div>
-      <div class="field">
-        <label for="clientName">Prénom du client</label>
-        <input type="text" id="clientName" placeholder="ex. Camille">
-      </div>
-      <div class="field">
-        <label for="notes">Analyse de suivi</label>
-        <textarea class="notes" id="notes" placeholder="ex. Épuisement lié à l'accompagnement d'un proche aidé, difficulté à lâcher le contrôle le soir..."></textarea>
-      </div>
-      <button class="primary" id="btnScript" onclick="genererScript()">Générer le script</button>
-      <div id="scriptError"></div>
-    </div>
-
-    <div class="card" id="cardScript" style="display:none">
-      <div class="step-label">Étape 2</div>
-      <h3>Le script de la séance</h3>
-      <div class="desc">Relisez-le et modifiez-le librement avant de l'enregistrer.</div>
-      <textarea class="script" id="scriptText"></textarea>
-      <button class="primary" style="margin-top:14px" id="btnAudio" onclick="genererAudio()">Générer l'audio</button>
-      <div id="audioError"></div>
-      <div id="audioProgress"></div>
-      <audio id="preview" controls style="display:none"></audio>
-    </div>
-
-    <div class="card" id="cardShare" style="display:none">
-      <div class="step-label">Étape 3</div>
-      <h3>Partager avec le client</h3>
-      <div class="desc">Un code à transmettre à votre client, à entrer dans l'onglet « Client ».</div>
-      <button class="primary" id="btnShare" onclick="partagerSeance()">Créer le code d'accès</button>
-      <div id="shareError"></div>
-      <div class="success" id="shareResult" style="display:none">
-        <div style="font-size:13px;color:var(--texte-doux)">Code d'accès pour <span id="shareName"></span></div>
-        <div class="code" id="shareCode"></div>
-        <button class="ghost" onclick="nouvelleSeance()">Préparer une nouvelle séance</button>
-      </div>
-    </div>
-  </div>
-
-  <div class="panel" id="panel-client">
-    <div class="card client-center">
-      <h3>Votre séance</h3>
-      <div class="desc">Entrez le code transmis par votre praticienne.</div>
-      <div class="field" style="text-align:left">
-        <label for="accessCode">Code d'accès</label>
-        <input type="text" id="accessCode" placeholder="ex. A3F9K2" style="text-transform:uppercase;text-align:center;letter-spacing:2px">
-      </div>
-      <button class="primary" onclick="accederSeance()" id="btnAccess">Accéder à ma séance</button>
-      <div id="clientError"></div>
-    </div>
-    <div class="card client-center" id="clientSession" style="display:none">
-      <div class="client-greet" id="clientGreet"></div>
-      <div class="client-sub">Installez-vous confortablement, dans un endroit calme, avant de démarrer.</div>
-      <audio id="clientAudio" controls style="width:100%"></audio>
-    </div>
+  <div class="card" id="clientSession" style="display:none">
+    <div class="client-greet" id="clientGreet"></div>
+    <div class="client-sub">Installez-vous confortablement, dans un endroit calme, avant de démarrer.</div>
+    <audio id="clientAudio" controls></audio>
   </div>
 
 </div>
 
 <script>
-document.querySelectorAll('.tab').forEach(btn => {
-  btn.addEventListener('click', () => {
-    document.querySelectorAll('.tab').forEach(b => b.classList.remove('active'));
-    document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
-    btn.classList.add('active');
-    document.getElementById('panel-' + btn.dataset.tab).classList.add('active');
-  });
-});
-
-function showError(elId, msg) {
-  document.getElementById(elId).innerHTML = msg ? `<div class="error">${msg}</div>` : "";
-}
-function showProgress(elId, msg) {
-  document.getElementById(elId).innerHTML = msg ? `<div class="progress"><span class="spinner" style="border-color:rgba(91,76,114,0.3);border-top-color:var(--lavande-fonce)"></span>${msg}</div>` : "";
-}
-
-async function genererScript() {
-  const btn = document.getElementById('btnScript');
-  const notes = document.getElementById('notes').value.trim();
-  const name = document.getElementById('clientName').value.trim();
-  showError('scriptError', '');
-  if (!notes) { showError('scriptError', "Ajoutez d'abord votre analyse de suivi."); return; }
-
-  btn.disabled = true;
-  btn.innerHTML = '<span class="spinner"></span>Rédaction en cours...';
-  try {
-    const res = await fetch('/.netlify/functions/generate-script', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ name, notes })
-    });
-    const data = await res.json();
-    if (!res.ok) throw new Error(data.error || 'Erreur inconnue');
-
-    document.getElementById('scriptText').value = data.script;
-    document.getElementById('cardScript').style.display = 'block';
-    document.getElementById('cardScript').scrollIntoView({ behavior: 'smooth', block: 'start' });
-  } catch (err) {
-    showError('scriptError', "La génération a échoué : " + err.message);
-  } finally {
-    btn.disabled = false;
-    btn.textContent = 'Générer le script';
-  }
-}
-
-function genererId() {
-  const chars = "abcdefghijklmnopqrstuvwxyz0123456789";
-  let id = "";
-  for (let i = 0; i < 16; i++) id += chars[Math.floor(Math.random() * chars.length)];
-  return id;
-}
-
-function attendre(ms) { return new Promise(r => setTimeout(r, ms)); }
-
-async function genererAudio() {
-  const btn = document.getElementById('btnAudio');
-  const script = document.getElementById('scriptText').value.trim();
-  showError('audioError', '');
-  showProgress('audioProgress', '');
-  if (!script) { showError('audioError', 'Le script est vide.'); return; }
-
-  const breath = document.getElementById('breath');
-  btn.disabled = true;
-  btn.innerHTML = '<span class="spinner"></span>Lancement...';
-  breath.className = 'breath actif';
-
-  const jobId = genererId();
-
-  try {
-    const startRes = await fetch('/.netlify/functions/generate-audio-background', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ script, jobId })
-    });
-    if (!startRes.ok && startRes.status !== 202) {
-      throw new Error("Impossible de démarrer la génération (" + startRes.status + ")");
-    }
-
-    btn.innerHTML = '<span class="spinner"></span>Enregistrement en cours...';
-    showProgress('audioProgress', "L'audio se prépare, cela peut prendre 1 à 2 minutes selon la longueur du script.");
-
-    let tentatives = 0;
-    let audioPret = false;
-
-    while (tentatives < 40 && !audioPret) {
-      await attendre(3000);
-      tentatives++;
-
-      const statusRes = await fetch('/.netlify/functions/audio-status?jobId=' + encodeURIComponent(jobId));
-      const statusData = await statusRes.json();
-
-      if (statusData.status === 'done') {
-        window.currentAudio = statusData.audio;
-        const preview = document.getElementById('preview');
-        preview.src = statusData.audio;
-        preview.style.display = 'block';
-        document.getElementById('cardShare').style.display = 'block';
-        showProgress('audioProgress', '');
-        audioPret = true;
-      } else if (statusData.status === 'error') {
-        throw new Error(statusData.error || 'Erreur pendant la génération.');
-      }
-    }
-
-    if (!audioPret) {
-      throw new Error("La génération prend plus de temps que prévu. Réessayez dans une minute.");
-    }
-  } catch (err) {
-    showError('audioError', "La génération audio a échoué : " + err.message);
-    showProgress('audioProgress', '');
-  } finally {
-    btn.disabled = false;
-    btn.textContent = "Générer l'audio";
-    breath.className = 'breath calme';
-  }
-}
-
-async function partagerSeance() {
-  const btn = document.getElementById('btnShare');
-  showError('shareError', '');
-  if (!window.currentAudio) { showError('shareError', "Générez d'abord l'audio."); return; }
-
-  const name = document.getElementById('clientName').value.trim() || 'votre client';
-  const script = document.getElementById('scriptText').value.trim();
-  const code = genererCode();
-
-  btn.disabled = true;
-  btn.innerHTML = '<span class="spinner"></span>Création du code...';
-  try {
-    const res = await fetch('/.netlify/functions/save-session', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ code, clientName: name, script, audio: window.currentAudio })
-    });
-    const data = await res.json();
-    if (!res.ok) throw new Error(data.error || 'Erreur inconnue');
-
-    document.getElementById('shareName').textContent = name;
-    document.getElementById('shareCode').textContent = code;
-    document.getElementById('shareResult').style.display = 'block';
-    btn.style.display = 'none';
-  } catch (err) {
-    showError('shareError', "Impossible de créer le code : " + err.message);
-  } finally {
-    btn.disabled = false;
-    btn.innerHTML = "Créer le code d'accès";
-  }
-}
-
-function genererCode() {
-  const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
-  let code = "";
-  for (let i = 0; i < 6; i++) code += chars[Math.floor(Math.random() * chars.length)];
-  return code;
-}
-
-function nouvelleSeance() {
-  document.getElementById('clientName').value = '';
-  document.getElementById('notes').value = '';
-  document.getElementById('scriptText').value = '';
-  document.getElementById('preview').style.display = 'none';
-  document.getElementById('cardScript').style.display = 'none';
-  document.getElementById('cardShare').style.display = 'none';
-  document.getElementById('shareResult').style.display = 'none';
-  document.getElementById('btnShare').style.display = 'inline-block';
-  window.currentAudio = null;
-  window.scrollTo({ top: 0, behavior: 'smooth' });
-}
-
 async function accederSeance() {
   const btn = document.getElementById('btnAccess');
   const code = document.getElementById('accessCode').value.trim().toUpperCase();
-  showError('clientError', '');
-  if (!code) { showError('clientError', "Entrez votre code d'accès."); return; }
+  document.getElementById('clientError').innerHTML = '';
+  if (!code) { document.getElementById('clientError').innerHTML = '<div class="error">Entrez votre code d\'accès.</div>'; return; }
 
   btn.disabled = true;
   btn.innerHTML = '<span class="spinner"></span>Recherche...';
@@ -355,11 +110,12 @@ async function accederSeance() {
     const audioEl = document.getElementById('clientAudio');
     audioEl.src = data.audio;
     audioEl.onplay = () => document.getElementById('breath').className = 'breath actif';
-    audioEl.onpause = () => document.getElementById('breath').className = 'breath calme';
-    audioEl.onended = () => document.getElementById('breath').className = 'breath calme';
+    audioEl.onpause = () => document.getElementById('breath').className = 'breath';
+    audioEl.onended = () => document.getElementById('breath').className = 'breath';
+    document.getElementById('cardAccess').style.display = 'none';
     document.getElementById('clientSession').style.display = 'block';
   } catch (err) {
-    showError('clientError', "Code introuvable. Vérifiez-le auprès de votre praticienne.");
+    document.getElementById('clientError').innerHTML = '<div class="error">Code introuvable. Vérifiez-le auprès de votre praticienne.</div>';
   } finally {
     btn.disabled = false;
     btn.textContent = 'Accéder à ma séance';
