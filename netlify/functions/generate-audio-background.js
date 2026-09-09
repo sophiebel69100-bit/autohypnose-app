@@ -21,28 +21,36 @@ exports.handler = async (event) => {
       return;
     }
 
-    const url = `https://api.elevenlabs.io/v1/text-to-speech/${encodeURIComponent(process.env.ELEVENLABS_VOICE_ID)}?output_format=mp3_44100_64`;
-    const response = await fetch(url, {
-      method: 'POST',
-      headers: {
-        'xi-api-key': process.env.ELEVENLABS_API_KEY,
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        text: scriptAvecPauses,
-        model_id: 'eleven_multilingual_v2',
-        voice_settings: { stability: 0.8, similarity_boost: 0.85, use_speaker_boost: true, speed: 0.7 }
-      })
-    });
+    const morceaux = scriptAvecPauses.split(/\n\s*\n/).map(m => m.trim()).filter(m => m.length > 0);
+    const buffers = [];
 
-    if (!response.ok) {
-      const detail = await response.text();
-      await store.set(jobId, JSON.stringify({ status: 'error', error: 'Erreur ElevenLabs : ' + detail }));
-      return;
+    for (const morceau of morceaux) {
+      const url = `https://api.elevenlabs.io/v1/text-to-speech/${encodeURIComponent(process.env.ELEVENLABS_VOICE_ID)}?output_format=mp3_44100_64`;
+      const response = await fetch(url, {
+        method: 'POST',
+        headers: {
+          'xi-api-key': process.env.ELEVENLABS_API_KEY,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          text: morceau,
+          model_id: 'eleven_multilingual_v2',
+          voice_settings: { stability: 0.8, similarity_boost: 0.85, use_speaker_boost: true, speed: 0.7 }
+        })
+      });
+
+      if (!response.ok) {
+        const detail = await response.text();
+        await store.set(jobId, JSON.stringify({ status: 'error', error: 'Erreur ElevenLabs : ' + detail }));
+        return;
+      }
+
+      const arrayBuffer = await response.arrayBuffer();
+      buffers.push(Buffer.from(arrayBuffer));
     }
 
-    const buffer = await response.arrayBuffer();
-    const base64 = Buffer.from(buffer).toString('base64');
+    const audioComplet = Buffer.concat(buffers);
+    const base64 = audioComplet.toString('base64');
     await store.set(jobId, JSON.stringify({ status: 'done', audio: 'data:audio/mpeg;base64,' + base64 }));
   } catch (err) {
     if (jobId) {
