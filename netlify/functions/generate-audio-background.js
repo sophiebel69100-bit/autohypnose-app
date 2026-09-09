@@ -8,9 +8,11 @@ exports.handler = async (event) => {
   try {
     const body = JSON.parse(event.body || '{}');
     jobId = body.jobId;
-    const scriptAvecPauses = script.replace(/\[[^\]]*\]/g, '<break time="1.5s" />');
+    const script = body.script;
 
     if (!script || !jobId) return;
+
+    const scriptAvecPauses = script.replace(/\[[^\]]*\]/g, '<break time="1.5s" />');
 
     await store.set(jobId, JSON.stringify({ status: 'processing' }));
 
