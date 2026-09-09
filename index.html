@@ -78,6 +78,7 @@
   button.ghost:hover { background: var(--lavande-pale); }
   .hint { font-size: 12.5px; color: var(--texte-doux); margin-top: 6px; }
   .error { background: #FBEEEA; border: 1px solid #E9C9BC; color: var(--erreur); padding: 11px 14px; border-radius: 10px; font-size: 13.5px; margin-top: 12px; }
+  .progress { background: #F1EEF8; border: 1px solid var(--lavande-pale); color: var(--lavande-fonce); padding: 11px 14px; border-radius: 10px; font-size: 13.5px; margin-top: 12px; }
   .success { background: #F1EEF8; border: 1px solid var(--lavande-pale); border-radius: 10px; padding: 16px; margin-top: 14px; }
   .success .code { font-family: 'Fraunces', serif; font-size: 26px; color: var(--lavande-fonce); letter-spacing: 3px; margin: 6px 0 10px; }
   audio { width: 100%; margin-top: 10px; }
@@ -129,6 +130,7 @@
       <textarea class="script" id="scriptText"></textarea>
       <button class="primary" style="margin-top:14px" id="btnAudio" onclick="genererAudio()">Générer l'audio</button>
       <div id="audioError"></div>
+      <div id="audioProgress"></div>
       <audio id="preview" controls style="display:none"></audio>
     </div>
 
@@ -179,6 +181,9 @@ document.querySelectorAll('.tab').forEach(btn => {
 function showError(elId, msg) {
   document.getElementById(elId).innerHTML = msg ? `<div class="error">${msg}</div>` : "";
 }
+function showProgress(elId, msg) {
+  document.getElementById(elId).innerHTML = msg ? `<div class="progress"><span class="spinner" style="border-color:rgba(91,76,114,0.3);border-top-color:var(--lavande-fonce)"></span>${msg}</div>` : "";
+}
 
 async function genererScript() {
   const btn = document.getElementById('btnScript');
@@ -209,32 +214,71 @@ async function genererScript() {
   }
 }
 
+function genererId() {
+  const chars = "abcdefghijklmnopqrstuvwxyz0123456789";
+  let id = "";
+  for (let i = 0; i < 16; i++) id += chars[Math.floor(Math.random() * chars.length)];
+  return id;
+}
+
+function attendre(ms) { return new Promise(r => setTimeout(r, ms)); }
+
 async function genererAudio() {
   const btn = document.getElementById('btnAudio');
   const script = document.getElementById('scriptText').value.trim();
   showError('audioError', '');
+  showProgress('audioProgress', '');
   if (!script) { showError('audioError', 'Le script est vide.'); return; }
 
   const breath = document.getElementById('breath');
   btn.disabled = true;
-  btn.innerHTML = '<span class="spinner"></span>Enregistrement de la voix...';
+  btn.innerHTML = '<span class="spinner"></span>Lancement...';
   breath.className = 'breath actif';
+
+  const jobId = genererId();
+
   try {
-    const res = await fetch('/.netlify/functions/generate-audio', {
+    const startRes = await fetch('/.netlify/functions/generate-audio-background', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ script })
+      body: JSON.stringify({ script, jobId })
     });
-    const data = await res.json();
-    if (!res.ok) throw new Error(data.error || 'Erreur inconnue');
+    if (!startRes.ok && startRes.status !== 202) {
+      throw new Error("Impossible de démarrer la génération (" + startRes.status + ")");
+    }
 
-    window.currentAudio = data.audio;
-    const preview = document.getElementById('preview');
-    preview.src = data.audio;
-    preview.style.display = 'block';
-    document.getElementById('cardShare').style.display = 'block';
+    btn.innerHTML = '<span class="spinner"></span>Enregistrement en cours...';
+    showProgress('audioProgress', "L'audio se prépare, cela peut prendre 1 à 2 minutes selon la longueur du script.");
+
+    let tentatives = 0;
+    let audioPret = false;
+
+    while (tentatives < 40 && !audioPret) {
+      await attendre(3000);
+      tentatives++;
+
+      const statusRes = await fetch('/.netlify/functions/audio-status?jobId=' + encodeURIComponent(jobId));
+      const statusData = await statusRes.json();
+
+      if (statusData.status === 'done') {
+        window.currentAudio = statusData.audio;
+        const preview = document.getElementById('preview');
+        preview.src = statusData.audio;
+        preview.style.display = 'block';
+        document.getElementById('cardShare').style.display = 'block';
+        showProgress('audioProgress', '');
+        audioPret = true;
+      } else if (statusData.status === 'error') {
+        throw new Error(statusData.error || 'Erreur pendant la génération.');
+      }
+    }
+
+    if (!audioPret) {
+      throw new Error("La génération prend plus de temps que prévu. Réessayez dans une minute.");
+    }
   } catch (err) {
     showError('audioError', "La génération audio a échoué : " + err.message);
+    showProgress('audioProgress', '');
   } finally {
     btn.disabled = false;
     btn.textContent = "Générer l'audio";
