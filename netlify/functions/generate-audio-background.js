@@ -31,7 +31,7 @@ exports.handler = async (event) => {
       body: JSON.stringify({
         text: scriptAvecPauses,
         model_id: 'eleven_multilingual_v2',
-        voice_settings: { stability: 0.6, similarity_boost: 0.8, speed: 0.8 }
+        voice_settings: { stability: 0.6, similarity_boost: 0.8, speed: 0.7 }
       })
     });
 
