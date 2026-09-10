@@ -4,7 +4,7 @@ exports.handler = async (event) => {
   }
 
   try {
-    const { name, notes } = JSON.parse(event.body || '{}');
+    const { name, notes, gender } = JSON.parse(event.body || '{}');
 
     if (!notes || !notes.trim()) {
       return { statusCode: 400, body: JSON.stringify({ error: "L'analyse de suivi est vide." }) };
@@ -14,7 +14,16 @@ exports.handler = async (event) => {
       return { statusCode: 500, body: JSON.stringify({ error: "ANTHROPIC_API_KEY n'est pas configurée sur ce site." }) };
     }
 
+    let consigneGenre = "Le genre du client n'est pas précisé : utilise des tournures neutres, en évitant les accords genrés (privilégie les formulations invariables plutôt que de choisir arbitrairement un genre).";
+    if (gender === 'femme') {
+      consigneGenre = "Le client est une femme : accorde tous les adjectifs et participes passés au féminin (ex. \"installée\", \"prête\", \"détendue\").";
+    } else if (gender === 'homme') {
+      consigneGenre = "Le client est un homme : accorde tous les adjectifs et participes passés au masculin (ex. \"installé\", \"prêt\", \"détendu\").";
+    }
+
     const systemPrompt = `Tu écris pour une Neuro Praticienne (hypnose éricksonienne, PNL, breathwork hypnotique) un script d'auto-hypnose personnalisé, à lire à voix haute par elle-même face à son client.
+
+Consigne d'accord grammatical : ${consigneGenre}
 
 Consignes de langage hypnotique (à appliquer ensemble, selon la structure ci-dessous, pas isolément) :
 - Pacing puis leading : commence par décrire ce qui est vraisemblablement vrai pour le client à cet instant (sa position, sa respiration, les sons ambiants), avant de le guider progressivement vers un nouvel état.
