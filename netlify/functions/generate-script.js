@@ -47,4 +47,27 @@ Consignes de forme :
         'x-api-key': process.env.ANTHROPIC_API_KEY,
         'anthropic-version': '2023-06-01'
       },
-      body:
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-6',
+        max_tokens: 1600,
+        system: systemPrompt,
+        messages: [{ role: 'user', content: userPrompt }]
+      })
+    });
+
+    if (!response.ok) {
+      const detail = await response.text();
+      return { statusCode: 502, body: JSON.stringify({ error: 'Erreur du service de génération : ' + detail }) };
+    }
+
+    const data = await response.json();
+    const textBlock = (data.content || []).find((b) => b.type === 'text');
+
+    return {
+      statusCode: 200,
+      body: JSON.stringify({ script: textBlock ? textBlock.text.trim() : '' })
+    };
+  } catch (err) {
+    return { statusCode: 500, body: JSON.stringify({ error: err.message }) };
+  }
+};
