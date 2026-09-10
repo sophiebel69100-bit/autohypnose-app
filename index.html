@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Votre séance d'auto-hypnose</title>
+<title>Mon espace</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=Work+Sans:wght@400;500;600&display=swap" rel="stylesheet">
@@ -37,17 +37,19 @@
   .breath.actif { animation-duration: 4.5s; }
   .hero h1 { font-size: 26px; color: var(--lavande-fonce); }
   .hero p { color: var(--texte-doux); font-size: 15px; margin-top: 8px; }
-  .card { background: var(--panel); border: 1px solid #EDE6F4; border-radius: var(--radius); padding: 26px; margin-bottom: 20px; text-align: center; }
+  .card { background: var(--panel); border: 1px solid #EDE6F4; border-radius: var(--radius); padding: 26px; margin-bottom: 20px; }
+  .card.center { text-align: center; }
   .card h3 { font-size: 18px; margin-bottom: 4px; }
   .card .desc { color: var(--texte-doux); font-size: 13.5px; margin-bottom: 16px; }
   .field { margin-bottom: 14px; text-align: left; }
   label { display: block; font-size: 13.5px; font-weight: 500; margin-bottom: 6px; }
-  input[type=text] {
+  input[type=text], textarea {
     width: 100%; border: 1px solid #DED4E8; border-radius: 10px; padding: 11px 13px;
-    font-family: 'Work Sans', sans-serif; font-size: 14.5px; background: #FFFEFC; color: var(--texte);
-    text-transform: uppercase; text-align: center; letter-spacing: 2px;
+    font-family: 'Work Sans', sans-serif; font-size: 14.5px; background: #FFFEFC; color: var(--texte); resize: vertical;
   }
-  input:focus { outline: none; border-color: var(--lavande); box-shadow: 0 0 0 3px var(--lavande-pale); }
+  input[type=text].code-input { text-transform: uppercase; text-align: center; letter-spacing: 2px; }
+  textarea { min-height: 140px; }
+  input:focus, textarea:focus { outline: none; border-color: var(--lavande); box-shadow: 0 0 0 3px var(--lavande-pale); }
   button.primary {
     background: var(--lavande-fonce); color: #FBF8FF; border: none; border-radius: 10px;
     padding: 12px 20px; font-family: 'Work Sans', sans-serif; font-size: 14.5px; font-weight: 500; cursor: pointer;
@@ -56,6 +58,7 @@
   button.primary:hover:not(:disabled) { background: var(--lavande); }
   button.primary:disabled { background: #C9C0D4; cursor: not-allowed; }
   .error { background: #FBEEEA; border: 1px solid #E9C9BC; color: var(--erreur); padding: 11px 14px; border-radius: 10px; font-size: 13.5px; margin-top: 12px; }
+  .success { background: #F1EEF8; border: 1px solid var(--lavande-pale); color: var(--lavande-fonce); padding: 14px; border-radius: 10px; font-size: 14px; margin-top: 12px; text-align: center; }
   audio { width: 100%; margin-top: 10px; }
   .spinner {
     display: inline-block; width: 14px; height: 14px; border: 2px solid rgba(255,255,255,0.4);
@@ -71,54 +74,107 @@
 
   <div class="hero">
     <div class="breath" id="breath"></div>
-    <h1>Votre séance</h1>
-    <p>Entrez le code transmis par votre praticienne.</p>
+    <h1 id="titre">Mon espace</h1>
+    <p id="sousTitre">Entre ton code personnel.</p>
   </div>
 
-  <div class="card" id="cardAccess">
+  <div class="card center" id="cardAccess">
     <div class="field">
-      <label for="accessCode">Code d'accès</label>
-      <input type="text" id="accessCode" placeholder="ex. A3F9K2">
+      <label for="accessCode">Ton code personnel</label>
+      <input type="text" class="code-input" id="accessCode" placeholder="ex. A3F9K2">
     </div>
-    <button class="primary" onclick="accederSeance()" id="btnAccess">Accéder à ma séance</button>
-    <div id="clientError"></div>
+    <button class="primary" onclick="accederEspace()" id="btnAccess">Accéder à mon espace</button>
+    <div id="accessError"></div>
   </div>
 
-  <div class="card" id="clientSession" style="display:none">
-    <div class="client-greet" id="clientGreet"></div>
-    <div class="client-sub">Installez-vous confortablement, dans un endroit calme, avant de démarrer.</div>
-    <audio id="clientAudio" controls></audio>
+  <div id="espaceClient" style="display:none">
+
+    <div class="card center" id="cardAudio" style="display:none">
+      <div class="client-greet" id="clientGreet"></div>
+      <div class="client-sub">Installe-toi confortablement, dans un endroit calme, avant de démarrer.</div>
+      <audio id="clientAudio" controls></audio>
+    </div>
+
+    <div class="card">
+      <h3>Ton journal</h3>
+      <div class="desc">Écris librement ce que tu ressens, entre deux séances.</div>
+      <div class="field">
+        <textarea id="entryText" placeholder="Écris librement ce que tu ressens, ce qui s'est passé, ce qui t'a marqué..."></textarea>
+      </div>
+      <button class="primary" onclick="envoyerEntree()" id="btnSend">Envoyer</button>
+      <div id="entryError"></div>
+      <div id="entrySuccess"></div>
+    </div>
+
   </div>
 
 </div>
 
 <script>
-async function accederSeance() {
+let codeActuel = '';
+
+async function accederEspace() {
   const btn = document.getElementById('btnAccess');
   const code = document.getElementById('accessCode').value.trim().toUpperCase();
-  document.getElementById('clientError').innerHTML = '';
-  if (!code) { document.getElementById('clientError').innerHTML = '<div class="error">Entrez votre code d\'accès.</div>'; return; }
+  document.getElementById('accessError').innerHTML = '';
+  if (!code) { document.getElementById('accessError').innerHTML = '<div class="error">Entre ton code personnel.</div>'; return; }
 
   btn.disabled = true;
   btn.innerHTML = '<span class="spinner"></span>Recherche...';
+
+  codeActuel = code;
+
   try {
     const res = await fetch('/.netlify/functions/get-session?code=' + encodeURIComponent(code));
-    const data = await res.json();
-    if (!res.ok) throw new Error('not found');
-
-    document.getElementById('clientGreet').textContent = `Bonjour ${data.clientName}`;
-    const audioEl = document.getElementById('clientAudio');
-    audioEl.src = data.audio;
-    audioEl.onplay = () => document.getElementById('breath').className = 'breath actif';
-    audioEl.onpause = () => document.getElementById('breath').className = 'breath';
-    audioEl.onended = () => document.getElementById('breath').className = 'breath';
-    document.getElementById('cardAccess').style.display = 'none';
-    document.getElementById('clientSession').style.display = 'block';
+    if (res.ok) {
+      const data = await res.json();
+      document.getElementById('clientGreet').textContent = `Bonjour ${data.clientName}`;
+      const audioEl = document.getElementById('clientAudio');
+      audioEl.src = data.audio;
+      audioEl.onplay = () => document.getElementById('breath').className = 'breath actif';
+      audioEl.onpause = () => document.getElementById('breath').className = 'breath';
+      audioEl.onended = () => document.getElementById('breath').className = 'breath';
+      document.getElementById('cardAudio').style.display = 'block';
+    }
   } catch (err) {
-    document.getElementById('clientError').innerHTML = '<div class="error">Code introuvable. Vérifiez-le auprès de votre praticienne.</div>';
+    // pas d'audio disponible pour ce code, on ignore et on affiche quand même le journal
+  }
+
+  document.getElementById('cardAccess').style.display = 'none';
+  document.getElementById('titre').textContent = 'Mon espace';
+  document.getElementById('sousTitre').textContent = '';
+  document.getElementById('espaceClient').style.display = 'block';
+
+  btn.disabled = false;
+  btn.textContent = 'Accéder à mon espace';
+}
+
+async function envoyerEntree() {
+  const btn = document.getElementById('btnSend');
+  const text = document.getElementById('entryText').value.trim();
+  document.getElementById('entryError').innerHTML = '';
+  document.getElementById('entrySuccess').innerHTML = '';
+
+  if (!text) { document.getElementById('entryError').innerHTML = '<div class="error">Écris quelque chose avant d\'envoyer.</div>'; return; }
+
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spinner"></span>Envoi...';
+  try {
+    const res = await fetch('/.netlify/functions/save-journal-entry', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ code: codeActuel, text })
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || 'Erreur inconnue');
+
+    document.getElementById('entryText').value = '';
+    document.getElementById('entrySuccess').innerHTML = '<div class="success">Merci de ta confiance. Tu peux écrire ici tout ce qui te passe par la tête et qui te fait du bien.</div>';
+  } catch (err) {
+    document.getElementById('entryError').innerHTML = '<div class="error">L\'envoi a échoué : ' + err.message + '</div>';
   } finally {
     btn.disabled = false;
-    btn.textContent = 'Accéder à ma séance';
+    btn.textContent = 'Envoyer';
   }
 }
 </script>
