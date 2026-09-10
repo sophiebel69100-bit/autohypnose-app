@@ -68,17 +68,17 @@
   <div class="hero">
     <div class="breath"></div>
     <h1>Mon journal</h1>
-    <p>Un espace pour poser vos mots, entre deux séances.</p>
+    <p>Un espace pour poser tes mots, entre deux séances.</p>
   </div>
 
   <div class="card">
     <div class="field">
-      <label for="clientCode">Votre code personnel</label>
+      <label for="clientCode">Ton code personnel</label>
       <input type="text" id="clientCode" placeholder="ex. A3F9K2">
     </div>
     <div class="field">
-      <label for="entryText">Votre entrée du jour</label>
-      <textarea id="entryText" placeholder="Écrivez librement ce que vous ressentez, ce qui s'est passé, ce qui vous a marqué..."></textarea>
+      <label for="entryText">Ton entrée du jour</label>
+      <textarea id="entryText" placeholder="Écris librement ce que tu ressens, ce qui s'est passé, ce qui t'a marqué..."></textarea>
     </div>
     <button class="primary" onclick="envoyerEntree()" id="btnSend">Envoyer</button>
     <div id="entryError"></div>
@@ -95,8 +95,8 @@ async function envoyerEntree() {
   document.getElementById('entryError').innerHTML = '';
   document.getElementById('entrySuccess').innerHTML = '';
 
-  if (!code) { document.getElementById('entryError').innerHTML = '<div class="error">Entrez votre code personnel.</div>'; return; }
-  if (!text) { document.getElementById('entryError').innerHTML = '<div class="error">Écrivez quelque chose avant d\'envoyer.</div>'; return; }
+  if (!code) { document.getElementById('entryError').innerHTML = '<div class="error">Entre ton code personnel.</div>'; return; }
+  if (!text) { document.getElementById('entryError').innerHTML = '<div class="error">Écris quelque chose avant d\'envoyer.</div>'; return; }
 
   btn.disabled = true;
   btn.innerHTML = '<span class="spinner"></span>Envoi...';
@@ -110,7 +110,7 @@ async function envoyerEntree() {
     if (!res.ok) throw new Error(data.error || 'Erreur inconnue');
 
     document.getElementById('entryText').value = '';
-    document.getElementById('entrySuccess').innerHTML = '<div class="success">Merci, votre entrée a bien été enregistrée.</div>';
+    document.getElementById('entrySuccess').innerHTML = '<div class="success">Merci de ta confiance. Tu peux écrire ici tout ce qui te passe par la tête et qui te fait du bien.</div>';
   } catch (err) {
     document.getElementById('entryError').innerHTML = '<div class="error">L\'envoi a échoué : ' + err.message + '</div>';
   } finally {
