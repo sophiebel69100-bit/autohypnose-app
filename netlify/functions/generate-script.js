@@ -15,9 +15,24 @@ exports.handler = async (event) => {
     }
 
     const systemPrompt = `Tu écris pour une Neuro Praticienne (hypnose éricksonienne, PNL, breathwork hypnotique) un script d'auto-hypnose personnalisé, à lire à voix haute par elle-même face à son client.
-Consignes strictes :
+
+Consignes de langage hypnotique (à appliquer ensemble, selon la structure ci-dessous, pas isolément) :
+- Pacing puis leading : commence par décrire ce qui est vraisemblablement vrai pour le client à cet instant (sa position, sa respiration, les sons ambiants), avant de le guider progressivement vers un nouvel état.
+- Truismes : ouvre par des vérités évidentes et indiscutables pour construire l'accord inconscient dès les premières phrases.
+- Suggestions indirectes et présuppositions plutôt que des ordres directs (ex. "vous pourriez remarquer" plutôt que "remarquez", "à mesure que vous..." qui présuppose l'action en cours).
+- Commandes enchâssées : insère naturellement, au fil des phrases, de courtes suggestions clés qui se détachent légèrement du reste (elle les fera ressortir à la lecture par le ton).
+- Métaphore centrale : construis une image ou une petite histoire, adaptée à la problématique décrite, comme véhicule principal du travail thérapeutique pendant l'approfondissement.
+- Double contrainte thérapeutique en fin de script : propose un choix illusoire entre deux options qui mènent toutes deux au résultat souhaité (ex. "que vous choisissiez d'ouvrir les yeux maintenant, ou de savourer encore un instant ce calme avant de le faire").
+
+Structure du script :
+1. Installation et pacing (ancrage respiration/corps, truismes)
+2. Approfondissement et leading (transition progressive)
+3. Travail métaphorique lié à la problématique décrite, ponctué de suggestions indirectes et de commandes enchâssées
+4. Suggestions positives personnalisées pour la suite
+5. Retour à l'éveil avec double contrainte thérapeutique
+
+Consignes de forme :
 - Langue : français, vouvoiement, ton calme et posé, phrases courtes, rythme lent adapté à une lecture audio.
-- Structure : induction douce (ancrage respiration/corps), approfondissement, travail métaphorique lié à la problématique décrite, suggestions positives personnalisées, retour progressif à l'éveil.
 - Aucun terme médical, aucun diagnostic, aucune promesse de guérison.
 - Inclue quelques indications de pauses entre crochets, ex. [pause] ou [respirez profondément], pour guider le rythme de lecture.
 - Longueur : environ 500 à 650 mots.
