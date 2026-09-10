@@ -37,6 +37,7 @@
   .breath.actif { animation-duration: 4.5s; }
   .hero h1 { font-size: 26px; color: var(--lavande-fonce); }
   .hero p { color: var(--texte-doux); font-size: 15px; margin-top: 8px; }
+  .section-title { font-size: 15px; font-weight: 600; color: var(--lavande-fonce); margin: 40px 0 16px; }
   .card { background: var(--panel); border: 1px solid #EDE6F4; border-radius: var(--radius); padding: 26px; margin-bottom: 20px; }
   .step-label { font-size: 13px; color: var(--or); font-weight: 600; margin-bottom: 6px; }
   .card h3 { font-size: 18px; margin-bottom: 4px; }
@@ -50,10 +51,12 @@
   textarea.notes { min-height: 110px; }
   textarea.script { min-height: 220px; line-height: 1.6; }
   .field { margin-bottom: 14px; }
+  .row2 { display: flex; gap: 10px; align-items: flex-end; }
+  .row2 .field { flex: 1; margin-bottom: 0; }
   button.primary {
     background: var(--lavande-fonce); color: #FBF8FF; border: none; border-radius: 10px;
     padding: 12px 20px; font-family: 'Work Sans', sans-serif; font-size: 14.5px; font-weight: 500; cursor: pointer;
-    transition: background 0.15s ease;
+    transition: background 0.15s ease; white-space: nowrap;
   }
   button.primary:hover:not(:disabled) { background: var(--lavande); }
   button.primary:disabled { background: #C9C0D4; cursor: not-allowed; }
@@ -72,6 +75,16 @@
     border-top-color: #fff; border-radius: 50%; animation: spin 0.7s linear infinite; margin-right: 8px; vertical-align: -2px;
   }
   @keyframes spin { to { transform: rotate(360deg); } }
+  .entry {
+    border-bottom: 1px solid #EDE6F4; padding: 14px 0;
+  }
+  .entry:last-child { border-bottom: none; }
+  .entry-date { font-size: 12px; color: var(--texte-doux); margin-bottom: 4px; }
+  .entry-text { font-size: 14.5px; white-space: pre-wrap; }
+  .code-genere {
+    font-family: 'Fraunces', serif; font-size: 22px; color: var(--lavande-fonce); letter-spacing: 2px;
+    background: var(--lavande-pale); border-radius: 10px; padding: 10px 16px; text-align: center; margin-top: 10px;
+  }
 </style>
 </head>
 <body>
@@ -129,6 +142,32 @@
       <div class="code" id="shareCode"></div>
       <button class="ghost" onclick="nouvelleSeance()">Préparer une nouvelle séance</button>
     </div>
+  </div>
+
+  <div class="section-title">Suivi entre les séances</div>
+
+  <div class="card">
+    <h3>Code personnel d'un client</h3>
+    <div class="desc">Génère un code permanent pour un nouveau client, à lui transmettre une seule fois avec le lien de la page journal.</div>
+    <button class="primary" onclick="genererCodeClient()">Générer un code client</button>
+    <div id="codeClientResult" style="display:none">
+      <div class="code-genere" id="codeClientAffiche"></div>
+      <div class="desc" style="margin-top:10px;margin-bottom:0">Transmets ce code avec le lien de la page journal (celle en `/journal.html` sur ce même site).</div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h3>Lire le journal d'un client</h3>
+    <div class="desc">Entre le code personnel du client pour voir ses entrées.</div>
+    <div class="row2">
+      <div class="field">
+        <label for="journalCode">Code client</label>
+        <input type="text" id="journalCode" placeholder="ex. A3F9K2" style="text-transform:uppercase">
+      </div>
+      <button class="primary" onclick="chargerJournal()" id="btnJournal">Voir le journal</button>
+    </div>
+    <div id="journalError"></div>
+    <div id="journalEntries"></div>
   </div>
 
 </div>
@@ -293,6 +332,44 @@ function nouvelleSeance() {
   document.getElementById('btnShare').style.display = 'inline-block';
   window.currentAudio = null;
   window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function genererCodeClient() {
+  const code = genererCode();
+  document.getElementById('codeClientAffiche').textContent = code;
+  document.getElementById('codeClientResult').style.display = 'block';
+}
+
+async function chargerJournal() {
+  const btn = document.getElementById('btnJournal');
+  const code = document.getElementById('journalCode').value.trim().toUpperCase();
+  showError('journalError', '');
+  document.getElementById('journalEntries').innerHTML = '';
+  if (!code) { showError('journalError', 'Entrez un code client.'); return; }
+
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spinner"></span>Chargement...';
+  try {
+    const res = await fetch('/.netlify/functions/get-journal?code=' + encodeURIComponent(code));
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || 'Erreur inconnue');
+
+    if (!data.entries || data.entries.length === 0) {
+      document.getElementById('journalEntries').innerHTML = '<div class="desc" style="margin-top:14px">Aucune entrée pour ce code pour le moment.</div>';
+    } else {
+      const html = data.entries.slice().reverse().map(entry => {
+        const d = new Date(entry.date);
+        const dateStr = d.toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+        return `<div class="entry"><div class="entry-date">${dateStr}</div><div class="entry-text">${entry.text.replace(/</g, '&lt;')}</div></div>`;
+      }).join('');
+      document.getElementById('journalEntries').innerHTML = html;
+    }
+  } catch (err) {
+    showError('journalError', "Impossible de charger le journal : " + err.message);
+  } finally {
+    btn.disabled = false;
+    btn.textContent = 'Voir le journal';
+  }
 }
 </script>
 </body>
