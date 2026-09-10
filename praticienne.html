@@ -42,11 +42,11 @@
   .card h3 { font-size: 18px; margin-bottom: 4px; }
   .card .desc { color: var(--texte-doux); font-size: 13.5px; margin-bottom: 16px; }
   label { display: block; font-size: 13.5px; font-weight: 500; margin-bottom: 6px; }
-  input[type=text], textarea {
+  input[type=text], textarea, select {
     width: 100%; border: 1px solid #DED4E8; border-radius: 10px; padding: 11px 13px;
     font-family: 'Work Sans', sans-serif; font-size: 14.5px; background: #FFFEFC; color: var(--texte); resize: vertical;
   }
-  input:focus, textarea:focus { outline: none; border-color: var(--lavande); box-shadow: 0 0 0 3px var(--lavande-pale); }
+  input:focus, textarea:focus, select:focus { outline: none; border-color: var(--lavande); box-shadow: 0 0 0 3px var(--lavande-pale); }
   textarea.notes { min-height: 110px; }
   textarea.script { min-height: 220px; line-height: 1.6; }
   .field { margin-bottom: 14px; }
@@ -90,6 +90,14 @@
     <div class="field">
       <label for="clientName">Prénom du client</label>
       <input type="text" id="clientName" placeholder="ex. Camille">
+    </div>
+    <div class="field">
+      <label for="clientGender">Genre du client (pour les accords grammaticaux)</label>
+      <select id="clientGender">
+        <option value="femme">Femme</option>
+        <option value="homme">Homme</option>
+        <option value="non-precise">Non précisé</option>
+      </select>
     </div>
     <div class="field">
       <label for="notes">Analyse de suivi</label>
@@ -137,6 +145,7 @@ async function genererScript() {
   const btn = document.getElementById('btnScript');
   const notes = document.getElementById('notes').value.trim();
   const name = document.getElementById('clientName').value.trim();
+  const gender = document.getElementById('clientGender').value;
   showError('scriptError', '');
   if (!notes) { showError('scriptError', "Ajoutez d'abord votre analyse de suivi."); return; }
 
@@ -146,7 +155,7 @@ async function genererScript() {
     const res = await fetch('/.netlify/functions/generate-script', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ name, notes })
+      body: JSON.stringify({ name, notes, gender })
     });
     const data = await res.json();
     if (!res.ok) throw new Error(data.error || 'Erreur inconnue');
