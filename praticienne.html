@@ -34,7 +34,7 @@
     box-shadow: 0 0 0 1px var(--or) inset; animation: pulse 4.5s ease-in-out infinite;
   }
   @keyframes pulse { 0%, 100% { transform: scale(0.92); opacity: 0.85; } 50% { transform: scale(1.08); opacity: 1; } }
-  .breath.actif { animation-duration: 4.5s; }
+  .breath.actif { animation-duration: 1.4s; }
   .hero h1 { font-size: 26px; color: var(--lavande-fonce); }
   .hero p { color: var(--texte-doux); font-size: 15px; margin-top: 8px; }
   .section-title { font-size: 15px; font-weight: 600; color: var(--lavande-fonce); margin: 40px 0 16px; }
@@ -51,7 +51,6 @@
   textarea.notes { min-height: 110px; }
   textarea.script { min-height: 220px; line-height: 1.6; }
   .field { margin-bottom: 14px; }
-  .field .hint { font-size: 12px; color: var(--texte-doux); margin-top: 4px; }
   .row2 { display: flex; gap: 10px; align-items: flex-end; }
   .row2 .field { flex: 1; margin-bottom: 0; }
   button.primary {
@@ -61,6 +60,10 @@
   }
   button.primary:hover:not(:disabled) { background: var(--lavande); }
   button.primary:disabled { background: #C9C0D4; cursor: not-allowed; }
+  button.stop {
+    background: var(--erreur); color: #FBF8FF; border: none; border-radius: 10px;
+    padding: 12px 20px; font-family: 'Work Sans', sans-serif; font-size: 14.5px; font-weight: 500; cursor: pointer;
+  }
   button.ghost {
     background: transparent; border: 1px solid #DED4E8; color: var(--lavande-fonce); border-radius: 10px;
     padding: 11px 18px; font-family: 'Work Sans', sans-serif; font-size: 14px; cursor: pointer;
@@ -76,9 +79,9 @@
     border-top-color: #fff; border-radius: 50%; animation: spin 0.7s linear infinite; margin-right: 8px; vertical-align: -2px;
   }
   @keyframes spin { to { transform: rotate(360deg); } }
-  .entry {
-    border-bottom: 1px solid #EDE6F4; padding: 14px 0;
-  }
+  .rec-row { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+  .rec-timer { font-family: 'Fraunces', serif; font-size: 20px; color: var(--lavande-fonce); min-width: 60px; }
+  .entry { border-bottom: 1px solid #EDE6F4; padding: 14px 0; }
   .entry:last-child { border-bottom: none; }
   .entry-date { font-size: 12px; color: var(--texte-doux); margin-bottom: 4px; }
   .entry-text { font-size: 14.5px; white-space: pre-wrap; }
@@ -124,16 +127,26 @@
   <div class="card" id="cardScript" style="display:none">
     <div class="step-label">Étape 2</div>
     <h3>Le script de la séance</h3>
-    <div class="desc">Relisez-le et modifiez-le librement avant de l'enregistrer.</div>
+    <div class="desc">Relisez-le et modifiez-le librement, puis lisez-le à voix haute pour l'enregistrer.</div>
     <textarea class="script" id="scriptText"></textarea>
-    <button class="primary" style="margin-top:14px" id="btnAudio" onclick="genererAudio()">Générer l'audio</button>
-    <div id="audioError"></div>
-    <div id="audioProgress"></div>
-    <audio id="preview" controls style="display:none"></audio>
+  </div>
+
+  <div class="card" id="cardRecord" style="display:none">
+    <div class="step-label">Étape 3</div>
+    <h3>Enregistrer l'audio</h3>
+    <div class="desc">Installez-vous confortablement, puis lisez le script ci-dessus à voix haute. Vous pouvez recommencer autant de fois que nécessaire.</div>
+    <div class="rec-row">
+      <button class="primary" id="btnRecStart" onclick="demarrerEnregistrement()">Démarrer l'enregistrement</button>
+      <button class="stop" id="btnRecStop" onclick="arreterEnregistrement()" style="display:none">Arrêter</button>
+      <span class="rec-timer" id="recTimer" style="display:none">00:00</span>
+    </div>
+    <div id="recError"></div>
+    <audio id="recPreview" controls style="display:none"></audio>
+    <button class="ghost" id="btnRecRestart" onclick="recommencerEnregistrement()" style="display:none;margin-top:10px">Recommencer</button>
   </div>
 
   <div class="card" id="cardShare" style="display:none">
-    <div class="step-label">Étape 3</div>
+    <div class="step-label">Étape 4</div>
     <h3>Partager avec le client</h3>
     <div class="desc">Laissez vide pour créer un nouveau code, ou entrez le code personnel d'un client existant pour que son audio et son journal restent au même endroit.</div>
     <div class="field">
@@ -157,7 +170,7 @@
     <button class="primary" onclick="genererCodeClient()">Générer un code client</button>
     <div id="codeClientResult" style="display:none">
       <div class="code-genere" id="codeClientAffiche"></div>
-      <div class="desc" style="margin-top:10px;margin-bottom:0">Transmets ce code avec le lien du site principal. Réutilise-le à l'étape 3 ci-dessus à chaque nouvel audio pour ce même client.</div>
+      <div class="desc" style="margin-top:10px;margin-bottom:0">Transmets ce code avec le lien du site principal. Réutilise-le à l'étape 4 ci-dessus à chaque nouvel audio pour ce même client.</div>
     </div>
   </div>
 
@@ -181,9 +194,6 @@
 function showError(elId, msg) {
   document.getElementById(elId).innerHTML = msg ? `<div class="error">${msg}</div>` : "";
 }
-function showProgress(elId, msg) {
-  document.getElementById(elId).innerHTML = msg ? `<div class="progress"><span class="spinner" style="border-color:rgba(91,76,114,0.3);border-top-color:var(--lavande-fonce)"></span>${msg}</div>` : "";
-}
 
 async function genererScript() {
   const btn = document.getElementById('btnScript');
@@ -206,6 +216,7 @@ async function genererScript() {
 
     document.getElementById('scriptText').value = data.script;
     document.getElementById('cardScript').style.display = 'block';
+    document.getElementById('cardRecord').style.display = 'block';
     document.getElementById('cardScript').scrollIntoView({ behavior: 'smooth', block: 'start' });
   } catch (err) {
     showError('scriptError', "La génération a échoué : " + err.message);
@@ -215,82 +226,82 @@ async function genererScript() {
   }
 }
 
-function genererId() {
-  const chars = "abcdefghijklmnopqrstuvwxyz0123456789";
-  let id = "";
-  for (let i = 0; i < 16; i++) id += chars[Math.floor(Math.random() * chars.length)];
-  return id;
+let mediaRecorder = null;
+let audioChunks = [];
+let recTimerInterval = null;
+let recSeconds = 0;
+
+async function demarrerEnregistrement() {
+  showError('recError', '');
+  try {
+    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+    audioChunks = [];
+    mediaRecorder = new MediaRecorder(stream);
+
+    mediaRecorder.ondataavailable = (e) => {
+      if (e.data.size > 0) audioChunks.push(e.data);
+    };
+
+    mediaRecorder.onstop = () => {
+      const blob = new Blob(audioChunks, { type: mediaRecorder.mimeType || 'audio/webm' });
+      const reader = new FileReader();
+      reader.onload = () => {
+        window.currentAudio = reader.result;
+        const preview = document.getElementById('recPreview');
+        preview.src = window.currentAudio;
+        preview.style.display = 'block';
+        document.getElementById('btnRecRestart').style.display = 'inline-block';
+        document.getElementById('cardShare').style.display = 'block';
+      };
+      reader.readAsDataURL(blob);
+      stream.getTracks().forEach(track => track.stop());
+    };
+
+    mediaRecorder.start();
+
+    document.getElementById('btnRecStart').style.display = 'none';
+    document.getElementById('btnRecStop').style.display = 'inline-block';
+    document.getElementById('recTimer').style.display = 'inline-block';
+    document.getElementById('recPreview').style.display = 'none';
+    document.getElementById('breath').className = 'breath actif';
+
+    recSeconds = 0;
+    document.getElementById('recTimer').textContent = '00:00';
+    recTimerInterval = setInterval(() => {
+      recSeconds++;
+      const m = String(Math.floor(recSeconds / 60)).padStart(2, '0');
+      const s = String(recSeconds % 60).padStart(2, '0');
+      document.getElementById('recTimer').textContent = `${m}:${s}`;
+    }, 1000);
+  } catch (err) {
+    showError('recError', "Impossible d'accéder au micro : " + err.message + ". Vérifiez que vous avez autorisé l'accès au microphone pour ce site.");
+  }
 }
 
-function attendre(ms) { return new Promise(r => setTimeout(r, ms)); }
-
-async function genererAudio() {
-  const btn = document.getElementById('btnAudio');
-  const script = document.getElementById('scriptText').value.trim();
-  showError('audioError', '');
-  showProgress('audioProgress', '');
-  if (!script) { showError('audioError', 'Le script est vide.'); return; }
-
-  const breath = document.getElementById('breath');
-  btn.disabled = true;
-  btn.innerHTML = '<span class="spinner"></span>Lancement...';
-  breath.className = 'breath actif';
-
-  const jobId = genererId();
-
-  try {
-    const startRes = await fetch('/.netlify/functions/generate-audio-background', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ script, jobId })
-    });
-    if (!startRes.ok && startRes.status !== 202) {
-      throw new Error("Impossible de démarrer la génération (" + startRes.status + ")");
-    }
-
-    btn.innerHTML = '<span class="spinner"></span>Enregistrement en cours...';
-    showProgress('audioProgress', "L'audio se prépare, cela peut prendre 1 à 2 minutes selon la longueur du script.");
-
-    let tentatives = 0;
-    let audioPret = false;
-
-    while (tentatives < 40 && !audioPret) {
-      await attendre(3000);
-      tentatives++;
-
-      const statusRes = await fetch('/.netlify/functions/audio-status?jobId=' + encodeURIComponent(jobId));
-      const statusData = await statusRes.json();
-
-      if (statusData.status === 'done') {
-        window.currentAudio = statusData.audio;
-        const preview = document.getElementById('preview');
-        preview.src = statusData.audio;
-        preview.style.display = 'block';
-        document.getElementById('cardShare').style.display = 'block';
-        showProgress('audioProgress', '');
-        audioPret = true;
-      } else if (statusData.status === 'error') {
-        throw new Error(statusData.error || 'Erreur pendant la génération.');
-      }
-    }
-
-    if (!audioPret) {
-      throw new Error("La génération prend plus de temps que prévu. Réessayez dans une minute.");
-    }
-  } catch (err) {
-    showError('audioError', "La génération audio a échoué : " + err.message);
-    showProgress('audioProgress', '');
-  } finally {
-    btn.disabled = false;
-    btn.textContent = "Générer l'audio";
-    breath.className = 'breath';
+function arreterEnregistrement() {
+  if (mediaRecorder && mediaRecorder.state !== 'inactive') {
+    mediaRecorder.stop();
   }
+  clearInterval(recTimerInterval);
+  document.getElementById('btnRecStart').style.display = 'inline-block';
+  document.getElementById('btnRecStart').textContent = 'Démarrer l\'enregistrement';
+  document.getElementById('btnRecStop').style.display = 'none';
+  document.getElementById('recTimer').style.display = 'none';
+  document.getElementById('breath').className = 'breath';
+}
+
+function recommencerEnregistrement() {
+  window.currentAudio = null;
+  document.getElementById('recPreview').style.display = 'none';
+  document.getElementById('btnRecRestart').style.display = 'none';
+  document.getElementById('cardShare').style.display = 'none';
+  showError('recError', '');
 }
 
 async function partagerSeance() {
   const btn = document.getElementById('btnShare');
   showError('shareError', '');
-  if (!window.currentAudio) { showError('shareError', "Générez d'abord l'audio."); return; }
+  if (!window.currentAudio) { showError('shareError', "Enregistrez d'abord l'audio."); return; }
 
   const name = document.getElementById('clientName').value.trim() || 'votre client';
   const script = document.getElementById('scriptText').value.trim();
@@ -332,8 +343,10 @@ function nouvelleSeance() {
   document.getElementById('notes').value = '';
   document.getElementById('scriptText').value = '';
   document.getElementById('existingCode').value = '';
-  document.getElementById('preview').style.display = 'none';
+  document.getElementById('recPreview').style.display = 'none';
+  document.getElementById('btnRecRestart').style.display = 'none';
   document.getElementById('cardScript').style.display = 'none';
+  document.getElementById('cardRecord').style.display = 'none';
   document.getElementById('cardShare').style.display = 'none';
   document.getElementById('shareResult').style.display = 'none';
   document.getElementById('btnShare').style.display = 'inline-block';
