@@ -96,6 +96,13 @@
   .dossier-sub:first-child { margin-top: 4px; }
   .statut-audio { font-size: 13.5px; color: var(--texte-doux); }
   .statut-audio strong { color: var(--texte); }
+  .client-row {
+    display: flex; justify-content: space-between; align-items: center;
+    border-bottom: 1px solid #EDE6F4; padding: 12px 0; font-size: 14.5px;
+  }
+  .client-row:last-child { border-bottom: none; }
+  .client-row .nom { font-weight: 500; }
+  .client-row .code { font-family: 'Fraunces', serif; color: var(--lavande-fonce); letter-spacing: 1px; font-size: 15px; }
 </style>
 </head>
 <body>
@@ -216,11 +223,23 @@
   <div class="card">
     <h3>Code personnel d'un client</h3>
     <div class="desc">Génère un code permanent pour un nouveau client, à lui transmettre une seule fois avec le lien du site principal (espace unique : audio + journal).</div>
+    <div class="field">
+      <label for="newClientName">Prénom du client</label>
+      <input type="text" id="newClientName" placeholder="ex. Camille">
+    </div>
     <button class="primary" onclick="genererCodeClient()">Générer un code client</button>
     <div id="codeClientResult" style="display:none">
       <div class="code-genere" id="codeClientAffiche"></div>
       <div class="desc" style="margin-top:10px;margin-bottom:0">Transmets ce code avec le lien du site principal. Réutilise-le à l'étape 4 ci-dessus à chaque nouvel audio pour ce même client.</div>
     </div>
+  </div>
+
+  <div class="card">
+    <h3>Mes clients</h3>
+    <div class="desc">Retrouve ici tous les codes générés, avec le prénom associé.</div>
+    <button class="primary" onclick="chargerClients()" id="btnClients">Actualiser la liste</button>
+    <div id="clientsError"></div>
+    <div id="clientsList"></div>
   </div>
 
   <div class="card">
@@ -592,6 +611,12 @@ async function partagerSeance() {
 
     if (!res.ok) throw new Error(data.error || 'Erreur inconnue');
 
+    await fetch('/.netlify/functions/save-client', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ code, name })
+    }).catch(() => {});
+
     document.getElementById('shareName').textContent = name;
     document.getElementById('shareCode').textContent = code;
     document.getElementById('shareResult').style.display = 'block';
@@ -628,10 +653,45 @@ function nouvelleSeance() {
   window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
-function genererCodeClient() {
+async function genererCodeClient() {
   const code = genererCode();
+  const name = document.getElementById('newClientName').value.trim();
   document.getElementById('codeClientAffiche').textContent = code;
   document.getElementById('codeClientResult').style.display = 'block';
+
+  try {
+    await fetch('/.netlify/functions/save-client', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ code, name })
+    });
+  } catch (e) { /* liste non critique, on continue même si ça échoue */ }
+}
+
+async function chargerClients() {
+  const btn = document.getElementById('btnClients');
+  showError('clientsError', '');
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spinner"></span>Chargement...';
+  try {
+    const res = await fetch('/.netlify/functions/get-clients');
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || 'Erreur inconnue');
+
+    if (!data.clients || data.clients.length === 0) {
+      document.getElementById('clientsList').innerHTML = '<div class="desc" style="margin-top:14px">Aucun client enregistré pour le moment.</div>';
+    } else {
+      const sorted = data.clients.slice().sort((a, b) => (a.name || '').localeCompare(b.name || ''));
+      document.getElementById('clientsList').innerHTML = sorted.map(c =>
+        `<div class="client-row"><span class="nom">${(c.name || 'Sans nom').replace(/</g, '&lt;')}</span><span class="code">${c.code}</span></div>`
+      ).join('');
+    }
+  } catch (err) {
+    showError('clientsError', "Impossible de charger la liste : " + err.message);
+  } finally {
+    btn.disabled = false;
+    btn.textContent = 'Actualiser la liste';
+  }
 }
 
 // ---- Dossier client unifié ----
