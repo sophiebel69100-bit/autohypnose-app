@@ -99,7 +99,9 @@
   .client-row {
     display: flex; justify-content: space-between; align-items: center;
     border-bottom: 1px solid #EDE6F4; padding: 12px 0; font-size: 14.5px;
+    cursor: pointer; transition: background 0.1s ease;
   }
+  .client-row:hover { background: var(--lavande-pale); margin: 0 -12px; padding: 12px; border-radius: 8px; }
   .client-row:last-child { border-bottom: none; }
   .client-row .nom { font-weight: 500; }
   .client-row .code { font-family: 'Fraunces', serif; color: var(--lavande-fonce); letter-spacing: 1px; font-size: 15px; }
@@ -236,7 +238,7 @@
 
   <div class="card">
     <h3>Mes clients</h3>
-    <div class="desc">Retrouve ici tous les codes générés, avec le prénom associé.</div>
+    <div class="desc">Clique sur un client pour ouvrir directement son dossier.</div>
     <button class="primary" onclick="chargerClients()" id="btnClients">Actualiser la liste</button>
     <div id="clientsError"></div>
     <div id="clientsList"></div>
@@ -683,7 +685,7 @@ async function chargerClients() {
     } else {
       const sorted = data.clients.slice().sort((a, b) => (a.name || '').localeCompare(b.name || ''));
       document.getElementById('clientsList').innerHTML = sorted.map(c =>
-        `<div class="client-row"><span class="nom">${(c.name || 'Sans nom').replace(/</g, '&lt;')}</span><span class="code">${c.code}</span></div>`
+        `<div class="client-row" onclick="selectionnerClient('${c.code}')"><span class="nom">${(c.name || 'Sans nom').replace(/</g, '&lt;')}</span><span class="code">${c.code}</span></div>`
       ).join('');
     }
   } catch (err) {
@@ -692,6 +694,12 @@ async function chargerClients() {
     btn.disabled = false;
     btn.textContent = 'Actualiser la liste';
   }
+}
+
+function selectionnerClient(code) {
+  document.getElementById('dossierCode').value = code;
+  document.getElementById('dossierCode').scrollIntoView({ behavior: 'smooth', block: 'center' });
+  ouvrirDossier();
 }
 
 // ---- Dossier client unifié ----
