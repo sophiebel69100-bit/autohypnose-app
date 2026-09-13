@@ -25,7 +25,7 @@
     margin: 0; background: var(--ivoire); color: var(--texte);
     font-family: 'Work Sans', sans-serif; min-height: 100vh; line-height: 1.55;
   }
-  h1, h3 { font-family: 'Fraunces', serif; font-weight: 500; margin: 0; }
+  h1, h3, h4 { font-family: 'Fraunces', serif; font-weight: 500; margin: 0; }
   .wrap { max-width: 640px; margin: 0 auto; padding: 40px 24px 80px; }
   .hero { text-align: center; padding: 24px 0 36px; }
   .breath {
@@ -91,6 +91,10 @@
     font-family: 'Fraunces', serif; font-size: 22px; color: var(--lavande-fonce); letter-spacing: 2px;
     background: var(--lavande-pale); border-radius: 10px; padding: 10px 16px; text-align: center; margin-top: 10px;
   }
+  .dossier-sub { font-size: 14px; color: var(--lavande-fonce); font-weight: 600; margin: 22px 0 8px; }
+  .dossier-sub:first-child { margin-top: 4px; }
+  .statut-audio { font-size: 13.5px; color: var(--texte-doux); }
+  .statut-audio strong { color: var(--texte); }
 </style>
 </head>
 <body>
@@ -191,6 +195,13 @@
     <div id="crResultBlock" style="display:none;margin-top:16px">
       <label for="crFinal">Compte-rendu structuré</label>
       <textarea class="cr" id="crFinal"></textarea>
+      <div class="field" style="margin-top:12px">
+        <label for="crCode">Code client (pour l'enregistrer dans son dossier)</label>
+        <input type="text" id="crCode" placeholder="ex. A3F9K2" style="text-transform:uppercase">
+      </div>
+      <button class="primary" id="btnSaveNote" onclick="enregistrerNote()">Enregistrer dans le dossier</button>
+      <div id="crSaveError"></div>
+      <div id="crSaveSuccess"></div>
     </div>
   </div>
 
@@ -207,17 +218,17 @@
   </div>
 
   <div class="card">
-    <h3>Lire le journal d'un client</h3>
-    <div class="desc">Entre le code personnel du client pour voir ses entrées.</div>
+    <h3>Dossier client</h3>
+    <div class="desc">Entre le code personnel du client pour retrouver au même endroit : statut de son audio, son journal, et tes comptes-rendus enregistrés.</div>
     <div class="row2">
       <div class="field">
-        <label for="journalCode">Code client</label>
-        <input type="text" id="journalCode" placeholder="ex. A3F9K2" style="text-transform:uppercase">
+        <label for="dossierCode">Code client</label>
+        <input type="text" id="dossierCode" placeholder="ex. A3F9K2" style="text-transform:uppercase">
       </div>
-      <button class="primary" onclick="chargerJournal()" id="btnJournal">Voir le journal</button>
+      <button class="primary" onclick="ouvrirDossier()" id="btnDossier">Ouvrir le dossier</button>
     </div>
-    <div id="journalError"></div>
-    <div id="journalEntries"></div>
+    <div id="dossierError"></div>
+    <div id="dossierContent"></div>
   </div>
 
 </div>
@@ -228,6 +239,10 @@ function showError(elId, msg) {
 }
 function showProgress(elId, msg) {
   document.getElementById(elId).innerHTML = msg ? `<div class="progress"><span class="spinner" style="border-color:rgba(91,76,114,0.3);border-top-color:var(--lavande-fonce)"></span>${msg}</div>` : "";
+}
+function formatDate(iso) {
+  const d = new Date(iso);
+  return d.toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit' });
 }
 
 async function genererScript() {
@@ -480,6 +495,35 @@ async function structurerCr() {
   }
 }
 
+async function enregistrerNote() {
+  const btn = document.getElementById('btnSaveNote');
+  const code = document.getElementById('crCode').value.trim().toUpperCase();
+  const text = document.getElementById('crFinal').value.trim();
+  showError('crSaveError', '');
+  document.getElementById('crSaveSuccess').innerHTML = '';
+  if (!code) { showError('crSaveError', 'Entrez le code du client.'); return; }
+  if (!text) { showError('crSaveError', 'Le compte-rendu est vide.'); return; }
+
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spinner"></span>Enregistrement...';
+  try {
+    const res = await fetch('/.netlify/functions/save-note', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ code, text })
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || 'Erreur inconnue');
+
+    document.getElementById('crSaveSuccess').innerHTML = '<div class="progress">Compte-rendu enregistré dans le dossier de ce client.</div>';
+  } catch (err) {
+    showError('crSaveError', "Impossible d'enregistrer : " + err.message);
+  } finally {
+    btn.disabled = false;
+    btn.textContent = 'Enregistrer dans le dossier';
+  }
+}
+
 // ---- Partage avec le client ----
 async function partagerSeance() {
   const btn = document.getElementById('btnShare');
@@ -550,36 +594,64 @@ function genererCodeClient() {
   document.getElementById('codeClientResult').style.display = 'block';
 }
 
-async function chargerJournal() {
-  const btn = document.getElementById('btnJournal');
-  const code = document.getElementById('journalCode').value.trim().toUpperCase();
-  showError('journalError', '');
-  document.getElementById('journalEntries').innerHTML = '';
-  if (!code) { showError('journalError', 'Entrez un code client.'); return; }
+// ---- Dossier client unifié ----
+async function ouvrirDossier() {
+  const btn = document.getElementById('btnDossier');
+  const code = document.getElementById('dossierCode').value.trim().toUpperCase();
+  showError('dossierError', '');
+  document.getElementById('dossierContent').innerHTML = '';
+  if (!code) { showError('dossierError', 'Entrez un code client.'); return; }
 
   btn.disabled = true;
   btn.innerHTML = '<span class="spinner"></span>Chargement...';
-  try {
-    const res = await fetch('/.netlify/functions/get-journal?code=' + encodeURIComponent(code));
-    const data = await res.json();
-    if (!res.ok) throw new Error(data.error || 'Erreur inconnue');
 
-    if (!data.entries || data.entries.length === 0) {
-      document.getElementById('journalEntries').innerHTML = '<div class="desc" style="margin-top:14px">Aucune entrée pour ce code pour le moment.</div>';
+  let html = '';
+
+  try {
+    const sessionRes = await fetch('/.netlify/functions/get-session?code=' + encodeURIComponent(code));
+    if (sessionRes.ok) {
+      const sessionData = await sessionRes.json();
+      html += `<div class="dossier-sub">Audio actuel</div><div class="statut-audio">Une séance audio est disponible pour <strong>${sessionData.clientName}</strong>.</div>`;
     } else {
-      const html = data.entries.slice().reverse().map(entry => {
-        const d = new Date(entry.date);
-        const dateStr = d.toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit' });
-        return `<div class="entry"><div class="entry-date">${dateStr}</div><div class="entry-text">${entry.text.replace(/</g, '&lt;')}</div></div>`;
-      }).join('');
-      document.getElementById('journalEntries').innerHTML = html;
+      html += `<div class="dossier-sub">Audio actuel</div><div class="statut-audio">Aucun audio enregistré pour ce code pour le moment.</div>`;
     }
-  } catch (err) {
-    showError('journalError', "Impossible de charger le journal : " + err.message);
-  } finally {
-    btn.disabled = false;
-    btn.textContent = 'Voir le journal';
+  } catch (e) {
+    html += `<div class="dossier-sub">Audio actuel</div><div class="statut-audio">Aucun audio enregistré pour ce code pour le moment.</div>`;
   }
+
+  try {
+    const journalRes = await fetch('/.netlify/functions/get-journal?code=' + encodeURIComponent(code));
+    const journalData = await journalRes.json();
+    html += '<div class="dossier-sub">Journal du client</div>';
+    if (!journalData.entries || journalData.entries.length === 0) {
+      html += '<div class="statut-audio">Aucune entrée pour le moment.</div>';
+    } else {
+      html += journalData.entries.slice().reverse().map(entry =>
+        `<div class="entry"><div class="entry-date">${formatDate(entry.date)}</div><div class="entry-text">${entry.text.replace(/</g, '&lt;')}</div></div>`
+      ).join('');
+    }
+  } catch (e) {
+    html += '<div class="dossier-sub">Journal du client</div><div class="statut-audio">Impossible de charger le journal.</div>';
+  }
+
+  try {
+    const notesRes = await fetch('/.netlify/functions/get-notes?code=' + encodeURIComponent(code));
+    const notesData = await notesRes.json();
+    html += '<div class="dossier-sub">Comptes-rendus enregistrés</div>';
+    if (!notesData.entries || notesData.entries.length === 0) {
+      html += '<div class="statut-audio">Aucun compte-rendu enregistré pour le moment.</div>';
+    } else {
+      html += notesData.entries.slice().reverse().map(entry =>
+        `<div class="entry"><div class="entry-date">${formatDate(entry.date)}</div><div class="entry-text">${entry.text.replace(/</g, '&lt;')}</div></div>`
+      ).join('');
+    }
+  } catch (e) {
+    html += '<div class="dossier-sub">Comptes-rendus enregistrés</div><div class="statut-audio">Impossible de charger les comptes-rendus.</div>';
+  }
+
+  document.getElementById('dossierContent').innerHTML = html;
+  btn.disabled = false;
+  btn.textContent = 'Ouvrir le dossier';
 }
 </script>
 </body>
