@@ -4,7 +4,7 @@ exports.handler = async (event) => {
   }
 
   try {
-    const { name, notes, gender } = JSON.parse(event.body || '{}');
+    const { name, notes, gender, history } = JSON.parse(event.body || '{}');
 
     if (!notes || !notes.trim()) {
       return { statusCode: 400, body: JSON.stringify({ error: "L'analyse de suivi est vide." }) };
@@ -40,6 +40,8 @@ Structure du script :
 4. Suggestions positives personnalisées pour la suite
 5. Retour à l'éveil avec double contrainte thérapeutique
 
+Si un historique (journal du client et/ou comptes-rendus de séances précédentes) est fourni, utilise-le pour enrichir la personnalisation (thèmes récurrents, progrès mentionnés, éléments qui semblent importants pour cette personne) — mais l'analyse de suivi rédigée par la praticienne reste la source principale et prioritaire.
+
 Consignes de forme :
 - Langue : français, tutoiement, ton calme et posé, phrases courtes, rythme lent adapté à une lecture audio.
 - Aucun terme médical, aucun diagnostic, aucune promesse de guérison.
@@ -47,7 +49,11 @@ Consignes de forme :
 - Longueur : environ 500 à 650 mots.
 - Réponds uniquement avec le texte du script, sans titre ni commentaire.`;
 
-    const userPrompt = `Prénom du client : ${name && name.trim() ? name.trim() : 'le client'}\n\nAnalyse de suivi transmise par la praticienne :\n${notes}`;
+    let userPrompt = `Prénom du client : ${name && name.trim() ? name.trim() : 'le client'}\n\nAnalyse de suivi transmise par la praticienne :\n${notes}`;
+
+    if (history && history.trim()) {
+      userPrompt += `\n\nHistorique disponible (journal du client et comptes-rendus des séances précédentes, à titre de contexte complémentaire) :\n${history.trim()}`;
+    }
 
     const response = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
