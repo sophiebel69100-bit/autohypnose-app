@@ -50,6 +50,7 @@
   input:focus, textarea:focus, select:focus { outline: none; border-color: var(--lavande); box-shadow: 0 0 0 3px var(--lavande-pale); }
   textarea.notes { min-height: 110px; }
   textarea.script { min-height: 220px; line-height: 1.6; }
+  textarea.cr { min-height: 180px; line-height: 1.6; }
   .field { margin-bottom: 14px; }
   .row2 { display: flex; gap: 10px; align-items: flex-end; }
   .row2 .field { flex: 1; margin-bottom: 0; }
@@ -163,6 +164,36 @@
     </div>
   </div>
 
+  <div class="section-title">Après la séance</div>
+
+  <div class="card">
+    <h3>Compte-rendu de séance</h3>
+    <div class="desc">Dictez à voix haute ce qui s'est passé pendant la séance. C'est transcrit puis structuré automatiquement — usage strictement interne, jamais montré au client.</div>
+    <div class="rec-row">
+      <button class="primary" id="btnCrStart" onclick="crDemarrerEnregistrement()">Démarrer l'enregistrement</button>
+      <button class="stop" id="btnCrStop" onclick="crArreterEnregistrement()" style="display:none">Arrêter</button>
+      <span class="rec-timer" id="crTimer" style="display:none">00:00</span>
+    </div>
+    <div id="crRecError"></div>
+    <audio id="crPreview" controls style="display:none"></audio>
+    <button class="primary" id="btnTranscrire" onclick="transcrireCr()" style="display:none;margin-top:14px">Transcrire</button>
+    <div id="crTranscribeError"></div>
+    <div id="crTranscribeProgress"></div>
+
+    <div id="crTranscriptBlock" style="display:none;margin-top:16px">
+      <label for="crTranscript">Transcription (modifiable)</label>
+      <textarea class="cr" id="crTranscript"></textarea>
+      <button class="primary" id="btnStructurer" onclick="structurerCr()" style="margin-top:10px">Structurer en compte-rendu</button>
+      <div id="crStructureError"></div>
+      <div id="crStructureProgress"></div>
+    </div>
+
+    <div id="crResultBlock" style="display:none;margin-top:16px">
+      <label for="crFinal">Compte-rendu structuré</label>
+      <textarea class="cr" id="crFinal"></textarea>
+    </div>
+  </div>
+
   <div class="section-title">Suivi entre les séances</div>
 
   <div class="card">
@@ -194,6 +225,9 @@
 <script>
 function showError(elId, msg) {
   document.getElementById(elId).innerHTML = msg ? `<div class="error">${msg}</div>` : "";
+}
+function showProgress(elId, msg) {
+  document.getElementById(elId).innerHTML = msg ? `<div class="progress"><span class="spinner" style="border-color:rgba(91,76,114,0.3);border-top-color:var(--lavande-fonce)"></span>${msg}</div>` : "";
 }
 
 async function genererScript() {
@@ -227,11 +261,6 @@ async function genererScript() {
   }
 }
 
-let mediaRecorder = null;
-let audioChunks = [];
-let recTimerInterval = null;
-let recSeconds = 0;
-
 function choisirMimeType() {
   const options = ['audio/webm;codecs=opus', 'audio/webm', 'audio/mp4'];
   for (const type of options) {
@@ -239,6 +268,12 @@ function choisirMimeType() {
   }
   return '';
 }
+
+// ---- Enregistrement audio de la séance d'auto-hypnose ----
+let mediaRecorder = null;
+let audioChunks = [];
+let recTimerInterval = null;
+let recSeconds = 0;
 
 async function demarrerEnregistrement() {
   showError('recError', '');
@@ -318,6 +353,134 @@ function recommencerEnregistrement() {
   showError('recError', '');
 }
 
+// ---- Enregistrement du compte-rendu de séance ----
+let crMediaRecorder = null;
+let crAudioChunks = [];
+let crTimerInterval = null;
+let crSeconds = 0;
+let crAudioData = null;
+
+async function crDemarrerEnregistrement() {
+  showError('crRecError', '');
+  document.getElementById('crTranscriptBlock').style.display = 'none';
+  document.getElementById('crResultBlock').style.display = 'none';
+  try {
+    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+    crAudioChunks = [];
+    const mimeType = choisirMimeType();
+    const options = { audioBitsPerSecond: 32000 };
+    if (mimeType) options.mimeType = mimeType;
+    crMediaRecorder = new MediaRecorder(stream, options);
+
+    crMediaRecorder.ondataavailable = (e) => {
+      if (e.data.size > 0) crAudioChunks.push(e.data);
+    };
+
+    crMediaRecorder.onstop = () => {
+      const blob = new Blob(crAudioChunks, { type: crMediaRecorder.mimeType || 'audio/webm' });
+      const reader = new FileReader();
+      reader.onload = () => {
+        crAudioData = reader.result;
+        const preview = document.getElementById('crPreview');
+        preview.src = crAudioData;
+        preview.style.display = 'block';
+        document.getElementById('btnTranscrire').style.display = 'inline-block';
+      };
+      reader.readAsDataURL(blob);
+      stream.getTracks().forEach(track => track.stop());
+    };
+
+    crMediaRecorder.start();
+
+    document.getElementById('btnCrStart').style.display = 'none';
+    document.getElementById('btnCrStop').style.display = 'inline-block';
+    document.getElementById('crTimer').style.display = 'inline-block';
+    document.getElementById('crPreview').style.display = 'none';
+    document.getElementById('btnTranscrire').style.display = 'none';
+    document.getElementById('breath').className = 'breath actif';
+
+    crSeconds = 0;
+    document.getElementById('crTimer').textContent = '00:00';
+    document.getElementById('crTimer').className = 'rec-timer';
+    crTimerInterval = setInterval(() => {
+      crSeconds++;
+      const m = String(Math.floor(crSeconds / 60)).padStart(2, '0');
+      const s = String(crSeconds % 60).padStart(2, '0');
+      document.getElementById('crTimer').textContent = `${m}:${s}`;
+    }, 1000);
+  } catch (err) {
+    showError('crRecError', "Impossible d'accéder au micro : " + err.message);
+  }
+}
+
+function crArreterEnregistrement() {
+  if (crMediaRecorder && crMediaRecorder.state !== 'inactive') {
+    crMediaRecorder.stop();
+  }
+  clearInterval(crTimerInterval);
+  document.getElementById('btnCrStart').style.display = 'inline-block';
+  document.getElementById('btnCrStop').style.display = 'none';
+  document.getElementById('crTimer').style.display = 'none';
+  document.getElementById('breath').className = 'breath';
+}
+
+async function transcrireCr() {
+  const btn = document.getElementById('btnTranscrire');
+  showError('crTranscribeError', '');
+  if (!crAudioData) { showError('crTranscribeError', "Enregistrez d'abord un compte-rendu."); return; }
+
+  btn.disabled = true;
+  showProgress('crTranscribeProgress', 'Transcription en cours...');
+  try {
+    const res = await fetch('/.netlify/functions/transcribe-audio', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ audio: crAudioData })
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || 'Erreur inconnue');
+
+    document.getElementById('crTranscript').value = data.text;
+    document.getElementById('crTranscriptBlock').style.display = 'block';
+    showProgress('crTranscribeProgress', '');
+  } catch (err) {
+    showError('crTranscribeError', "La transcription a échoué : " + err.message);
+    showProgress('crTranscribeProgress', '');
+  } finally {
+    btn.disabled = false;
+  }
+}
+
+async function structurerCr() {
+  const btn = document.getElementById('btnStructurer');
+  const transcript = document.getElementById('crTranscript').value.trim();
+  showError('crStructureError', '');
+  if (!transcript) { showError('crStructureError', 'La transcription est vide.'); return; }
+
+  btn.disabled = true;
+  showProgress('crStructureProgress', 'Mise en forme en cours...');
+  try {
+    const res = await fetch('/.netlify/functions/structure-cr', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ transcript })
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || 'Erreur inconnue');
+
+    document.getElementById('crFinal').value = data.cr;
+    document.getElementById('crResultBlock').style.display = 'block';
+    document.getElementById('crResultBlock').scrollIntoView({ behavior: 'smooth', block: 'end' });
+    showProgress('crStructureProgress', '');
+  } catch (err) {
+    showError('crStructureError', "La mise en forme a échoué : " + err.message);
+    showProgress('crStructureProgress', '');
+  } finally {
+    btn.disabled = false;
+  }
+}
+
+// ---- Partage avec le client ----
 async function partagerSeance() {
   const btn = document.getElementById('btnShare');
   showError('shareError', '');
