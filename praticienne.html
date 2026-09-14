@@ -48,7 +48,7 @@
     font-family: 'Work Sans', sans-serif; font-size: 14.5px; background: #FFFEFC; color: var(--texte); resize: vertical;
   }
   input:focus, textarea:focus, select:focus { outline: none; border-color: var(--lavande); box-shadow: 0 0 0 3px var(--lavande-pale); }
-  textarea.notes { min-height: 110px; }
+  textarea.notes { min-height: 90px; }
   textarea.script { min-height: 220px; line-height: 1.6; }
   textarea.cr { min-height: 180px; line-height: 1.6; }
   .field { margin-bottom: 14px; }
@@ -71,6 +71,13 @@
     padding: 11px 18px; font-family: 'Work Sans', sans-serif; font-size: 14px; cursor: pointer;
   }
   button.ghost:hover { background: var(--lavande-pale); }
+  button.mini {
+    background: transparent; border: 1px solid #DED4E8; color: var(--texte-doux); border-radius: 8px;
+    padding: 5px 10px; font-family: 'Work Sans', sans-serif; font-size: 12px; cursor: pointer;
+  }
+  button.mini:hover { background: var(--lavande-pale); }
+  button.mini.danger { color: var(--erreur); border-color: #E9C9BC; }
+  button.mini.danger:hover { background: #FBEEEA; }
   .error { background: #FBEEEA; border: 1px solid #E9C9BC; color: var(--erreur); padding: 11px 14px; border-radius: 10px; font-size: 13.5px; margin-top: 12px; }
   .progress { background: #F1EEF8; border: 1px solid var(--lavande-pale); color: var(--lavande-fonce); padding: 11px 14px; border-radius: 10px; font-size: 13.5px; margin-top: 12px; }
   .success { background: #F1EEF8; border: 1px solid var(--lavande-pale); border-radius: 10px; padding: 16px; margin-top: 14px; }
@@ -92,19 +99,26 @@
     font-family: 'Fraunces', serif; font-size: 22px; color: var(--lavande-fonce); letter-spacing: 2px;
     background: var(--lavande-pale); border-radius: 10px; padding: 10px 16px; text-align: center; margin-top: 10px;
   }
-  .dossier-sub { font-size: 14px; color: var(--lavande-fonce); font-weight: 600; margin: 22px 0 8px; }
-  .dossier-sub:first-child { margin-top: 4px; }
-  .statut-audio { font-size: 13.5px; color: var(--texte-doux); }
-  .statut-audio strong { color: var(--texte); }
+  .mode-toggle { display: flex; gap: 4px; background: var(--lavande-pale); border-radius: 999px; padding: 4px; margin-bottom: 20px; width: fit-content; }
+  .mode-btn { border: none; background: transparent; padding: 9px 18px; border-radius: 999px; font-family: 'Work Sans', sans-serif; font-size: 14px; font-weight: 500; color: var(--lavande-fonce); cursor: pointer; }
+  .mode-btn.active { background: var(--panel); box-shadow: 0 1px 3px rgba(91,76,114,0.15); }
   .client-row {
     display: flex; justify-content: space-between; align-items: center;
-    border-bottom: 1px solid #EDE6F4; padding: 12px 0; font-size: 14.5px;
-    cursor: pointer; transition: background 0.1s ease;
+    border-bottom: 1px solid #EDE6F4; padding: 10px 0; font-size: 14.5px; gap: 10px;
   }
-  .client-row:hover { background: var(--lavande-pale); margin: 0 -12px; padding: 12px; border-radius: 8px; }
   .client-row:last-child { border-bottom: none; }
+  .client-row .infos { flex: 1; cursor: pointer; display: flex; justify-content: space-between; align-items: center; }
+  .client-row .infos:hover .nom { text-decoration: underline; }
   .client-row .nom { font-weight: 500; }
-  .client-row .code { font-family: 'Fraunces', serif; color: var(--lavande-fonce); letter-spacing: 1px; font-size: 15px; }
+  .client-row .code { font-family: 'Fraunces', serif; color: var(--lavande-fonce); letter-spacing: 1px; font-size: 15px; margin-right: 12px; }
+  .client-row .actions { display: flex; gap: 6px; }
+  .active-banner {
+    background: var(--lavande-pale); border-radius: var(--radius); padding: 18px 22px;
+    display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 10px;
+  }
+  .active-banner .label { font-size: 13px; color: var(--lavande-fonce); font-weight: 600; }
+  .active-banner .nom { font-family: 'Fraunces', serif; font-size: 19px; color: var(--texte); }
+  .link-toggle { background: none; border: none; color: var(--lavande-fonce); font-size: 13px; text-decoration: underline; cursor: pointer; padding: 0; }
 </style>
 </head>
 <body>
@@ -116,151 +130,139 @@
     <p>Préparez une séance d'auto-hypnose personnalisée.</p>
   </div>
 
-  <div class="card">
-    <div class="step-label">Étape 1</div>
-    <h3>Le suivi du client</h3>
-    <div class="desc">Notez le prénom et collez votre analyse de suivi.</div>
-    <div class="field">
-      <label for="clientName">Prénom du client</label>
-      <input type="text" id="clientName" placeholder="ex. Camille">
-    </div>
-    <div class="field">
-      <label for="scriptCode">Code client (optionnel)</label>
-      <input type="text" id="scriptCode" placeholder="ex. A3F9K2" style="text-transform:uppercase">
-      <div class="hint">Si rempli, son journal et ses comptes-rendus enregistrés seront automatiquement pris en compte dans le script.</div>
-    </div>
-    <div class="field">
-      <label for="clientGender">Genre du client (pour les accords grammaticaux)</label>
-      <select id="clientGender">
-        <option value="femme">Femme</option>
-        <option value="homme">Homme</option>
-        <option value="non-precise">Non précisé</option>
-      </select>
-    </div>
-    <div class="field">
-      <label for="notes">Analyse de suivi</label>
-      <textarea class="notes" id="notes" placeholder="ex. Épuisement lié à l'accompagnement d'un proche aidé, difficulté à lâcher le contrôle le soir..."></textarea>
-    </div>
-    <button class="primary" id="btnScript" onclick="genererScript()">Générer le script</button>
-    <div id="scriptError"></div>
-  </div>
+  <!-- ============ IDENTIFICATION DU CLIENT ============ -->
+  <div class="card" id="cardIdentify">
+    <h3>Qui est le client ?</h3>
+    <div class="desc">Choisissez un nouveau client, ou retrouvez un client existant.</div>
 
-  <div class="card" id="cardScript" style="display:none">
-    <div class="step-label">Étape 2</div>
-    <h3>Le script de la séance</h3>
-    <div class="desc">Relisez-le et modifiez-le librement, puis lisez-le à voix haute pour l'enregistrer.</div>
-    <textarea class="script" id="scriptText"></textarea>
-  </div>
-
-  <div class="card" id="cardRecord" style="display:none">
-    <div class="step-label">Étape 3</div>
-    <h3>Enregistrer l'audio</h3>
-    <div class="desc">Installez-vous confortablement, puis lisez le script ci-dessus à voix haute. Restez si possible sous 8-9 minutes par enregistrement (limite technique de stockage). Vous pouvez recommencer autant de fois que nécessaire.</div>
-    <div class="rec-row">
-      <button class="primary" id="btnRecStart" onclick="demarrerEnregistrement()">Démarrer l'enregistrement</button>
-      <button class="stop" id="btnRecStop" onclick="arreterEnregistrement()" style="display:none">Arrêter</button>
-      <span class="rec-timer" id="recTimer" style="display:none">00:00</span>
-    </div>
-    <div id="recError"></div>
-    <audio id="recPreview" controls style="display:none"></audio>
-    <button class="ghost" id="btnRecRestart" onclick="recommencerEnregistrement()" style="display:none;margin-top:10px">Recommencer</button>
-  </div>
-
-  <div class="card" id="cardShare" style="display:none">
-    <div class="step-label">Étape 4</div>
-    <h3>Partager avec le client</h3>
-    <div class="desc">Laissez vide pour créer un nouveau code, ou entrez le code personnel d'un client existant pour que son audio et son journal restent au même endroit.</div>
-    <div class="field">
-      <label for="existingCode">Code client existant (optionnel)</label>
-      <input type="text" id="existingCode" placeholder="ex. A3F9K2" style="text-transform:uppercase">
-    </div>
-    <button class="primary" id="btnShare" onclick="partagerSeance()">Créer / mettre à jour le code d'accès</button>
-    <div id="shareError"></div>
-    <div class="success" id="shareResult" style="display:none">
-      <div style="font-size:13px;color:var(--texte-doux)">Code d'accès pour <span id="shareName"></span></div>
-      <div class="code" id="shareCode"></div>
-      <button class="ghost" onclick="nouvelleSeance()">Préparer une nouvelle séance</button>
-    </div>
-  </div>
-
-  <div class="section-title">Après la séance</div>
-
-  <div class="card">
-    <h3>Compte-rendu de séance</h3>
-    <div class="desc">Dictez à voix haute ce qui s'est passé pendant la séance. C'est transcrit puis structuré automatiquement — usage strictement interne, jamais montré au client.</div>
-    <div class="rec-row">
-      <button class="primary" id="btnCrStart" onclick="crDemarrerEnregistrement()">Démarrer l'enregistrement</button>
-      <button class="stop" id="btnCrStop" onclick="crArreterEnregistrement()" style="display:none">Arrêter</button>
-      <span class="rec-timer" id="crTimer" style="display:none">00:00</span>
-    </div>
-    <div id="crRecError"></div>
-    <audio id="crPreview" controls style="display:none"></audio>
-    <button class="primary" id="btnTranscrire" onclick="transcrireCr()" style="display:none;margin-top:14px">Transcrire</button>
-    <div id="crTranscribeError"></div>
-    <div id="crTranscribeProgress"></div>
-
-    <div id="crTranscriptBlock" style="display:none;margin-top:16px">
-      <label for="crTranscript">Transcription (modifiable)</label>
-      <textarea class="cr" id="crTranscript"></textarea>
-      <button class="primary" id="btnStructurer" onclick="structurerCr()" style="margin-top:10px">Structurer en compte-rendu</button>
-      <div id="crStructureError"></div>
-      <div id="crStructureProgress"></div>
+    <div class="mode-toggle">
+      <button class="mode-btn active" id="btnModeNew" onclick="setMode('new')">Nouveau client</button>
+      <button class="mode-btn" id="btnModeExisting" onclick="setMode('existing')">Client existant</button>
     </div>
 
-    <div id="crResultBlock" style="display:none;margin-top:16px">
-      <label for="crFinal">Compte-rendu structuré</label>
-      <textarea class="cr" id="crFinal"></textarea>
-      <div class="field" style="margin-top:12px">
-        <label for="crCode">Code client (pour l'enregistrer dans son dossier)</label>
-        <input type="text" id="crCode" placeholder="ex. A3F9K2" style="text-transform:uppercase">
-      </div>
-      <button class="primary" id="btnSaveNote" onclick="enregistrerNote()">Enregistrer dans le dossier</button>
-      <div id="crSaveError"></div>
-      <div id="crSaveSuccess"></div>
-    </div>
-  </div>
-
-  <div class="section-title">Suivi entre les séances</div>
-
-  <div class="card">
-    <h3>Code personnel d'un client</h3>
-    <div class="desc">Génère un code permanent pour un nouveau client, à lui transmettre une seule fois avec le lien du site principal (espace unique : audio + journal).</div>
-    <div class="field">
-      <label for="newClientName">Prénom du client</label>
-      <input type="text" id="newClientName" placeholder="ex. Camille">
-    </div>
-    <button class="primary" onclick="genererCodeClient()">Générer un code client</button>
-    <div id="codeClientResult" style="display:none">
-      <div class="code-genere" id="codeClientAffiche"></div>
-      <div class="desc" style="margin-top:10px;margin-bottom:0">Transmets ce code avec le lien du site principal. Réutilise-le à l'étape 4 ci-dessus à chaque nouvel audio pour ce même client.</div>
-    </div>
-  </div>
-
-  <div class="card">
-    <h3>Mes clients</h3>
-    <div class="desc">Clique sur un client pour ouvrir directement son dossier.</div>
-    <button class="primary" onclick="chargerClients()" id="btnClients">Actualiser la liste</button>
-    <div id="clientsError"></div>
-    <div id="clientsList"></div>
-  </div>
-
-  <div class="card">
-    <h3>Dossier client</h3>
-    <div class="desc">Entre le code personnel du client pour retrouver au même endroit : statut de son audio, son journal, et tes comptes-rendus enregistrés.</div>
-    <div class="row2">
+    <div id="modeNew">
       <div class="field">
-        <label for="dossierCode">Code client</label>
-        <input type="text" id="dossierCode" placeholder="ex. A3F9K2" style="text-transform:uppercase">
+        <label for="newClientName">Prénom du client</label>
+        <input type="text" id="newClientName" placeholder="ex. Camille">
       </div>
-      <button class="primary" onclick="ouvrirDossier()" id="btnDossier">Ouvrir le dossier</button>
+      <div class="field">
+        <label for="newClientGender">Genre (pour les accords grammaticaux)</label>
+        <select id="newClientGender">
+          <option value="femme">Femme</option>
+          <option value="homme">Homme</option>
+          <option value="non-precise">Non précisé</option>
+        </select>
+      </div>
+      <button class="primary" onclick="genererNouveauClient()">Générer un code client et continuer</button>
+      <div id="newClientError"></div>
     </div>
-    <div id="dossierError"></div>
-    <div id="dossierContent"></div>
+
+    <div id="modeExisting" style="display:none">
+      <div class="field">
+        <label for="clientSearch">Rechercher un client</label>
+        <input type="text" id="clientSearch" placeholder="Tapez un prénom..." oninput="filtrerClients()">
+      </div>
+      <button class="link-toggle" id="btnToggleArchives" onclick="toggleArchives()">Voir les clients archivés</button>
+      <div id="clientsError"></div>
+      <div id="clientsList" style="margin-top:12px"></div>
+    </div>
+  </div>
+
+  <!-- ============ CLIENT ACTIF ============ -->
+  <div class="active-banner" id="cardActiveClient" style="display:none">
+    <div>
+      <div class="label">Client actif</div>
+      <div class="nom" id="activeClientLabel"></div>
+    </div>
+    <button class="ghost" onclick="changerClient()">Changer de client</button>
+  </div>
+
+  <div id="workflowSections" style="display:none">
+
+    <div class="card">
+      <div class="step-label">Après une séance physique</div>
+      <h3>Compte-rendu de séance</h3>
+      <div class="desc">Dictez à voix haute ce qui s'est passé. C'est transcrit puis structuré automatiquement — usage strictement interne, jamais montré au client.</div>
+      <div class="rec-row">
+        <button class="primary" id="btnCrStart" onclick="crDemarrerEnregistrement()">Démarrer l'enregistrement</button>
+        <button class="stop" id="btnCrStop" onclick="crArreterEnregistrement()" style="display:none">Arrêter</button>
+        <span class="rec-timer" id="crTimer" style="display:none">00:00</span>
+      </div>
+      <div id="crRecError"></div>
+      <audio id="crPreview" controls style="display:none"></audio>
+      <button class="primary" id="btnTranscrire" onclick="transcrireCr()" style="display:none;margin-top:14px">Transcrire</button>
+      <div id="crTranscribeError"></div>
+      <div id="crTranscribeProgress"></div>
+
+      <div id="crTranscriptBlock" style="display:none;margin-top:16px">
+        <label for="crTranscript">Transcription (modifiable)</label>
+        <textarea class="cr" id="crTranscript"></textarea>
+        <button class="primary" id="btnStructurer" onclick="structurerCr()" style="margin-top:10px">Structurer en compte-rendu</button>
+        <div id="crStructureError"></div>
+        <div id="crStructureProgress"></div>
+      </div>
+
+      <div id="crResultBlock" style="display:none;margin-top:16px">
+        <label for="crFinal">Compte-rendu structuré</label>
+        <textarea class="cr" id="crFinal"></textarea>
+        <button class="primary" id="btnSaveNote" onclick="enregistrerNote()" style="margin-top:10px">Enregistrer dans le dossier</button>
+        <div id="crSaveError"></div>
+        <div id="crSaveSuccess"></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="step-label">Auto-hypnose entre les séances</div>
+      <h3>Générer l'auto-hypnose</h3>
+      <div class="desc">S'appuie automatiquement sur tout l'historique de ce client (comptes-rendus + journal). Vous pouvez ajouter une note du jour pour orienter la séance.</div>
+      <div class="field">
+        <label for="notes">Note du jour (optionnelle)</label>
+        <textarea class="notes" id="notes" placeholder="Un point précis à travailler aujourd'hui, si besoin..."></textarea>
+      </div>
+      <button class="primary" id="btnScript" onclick="genererScript()">Générer le script</button>
+      <div id="scriptError"></div>
+    </div>
+
+    <div class="card" id="cardScript" style="display:none">
+      <h3>Le script de la séance</h3>
+      <div class="desc">Relisez-le et modifiez-le librement, puis lisez-le à voix haute pour l'enregistrer.</div>
+      <textarea class="script" id="scriptText"></textarea>
+    </div>
+
+    <div class="card" id="cardRecord" style="display:none">
+      <h3>Enregistrer l'audio</h3>
+      <div class="desc">Installez-vous confortablement, puis lisez le script ci-dessus à voix haute. Restez si possible sous 8-9 minutes. Vous pouvez recommencer autant de fois que nécessaire.</div>
+      <div class="rec-row">
+        <button class="primary" id="btnRecStart" onclick="demarrerEnregistrement()">Démarrer l'enregistrement</button>
+        <button class="stop" id="btnRecStop" onclick="arreterEnregistrement()" style="display:none">Arrêter</button>
+        <span class="rec-timer" id="recTimer" style="display:none">00:00</span>
+      </div>
+      <div id="recError"></div>
+      <audio id="recPreview" controls style="display:none"></audio>
+      <button class="ghost" id="btnRecRestart" onclick="recommencerEnregistrement()" style="display:none;margin-top:10px">Recommencer</button>
+    </div>
+
+    <div class="card" id="cardShare" style="display:none">
+      <h3>Partager avec le client</h3>
+      <div class="desc">L'audio est associé au code déjà identifié plus haut — rien à retaper.</div>
+      <button class="primary" id="btnShare" onclick="partagerSeance()">Partager cet audio</button>
+      <div id="shareError"></div>
+      <div class="success" id="shareResult" style="display:none">
+        Audio partagé avec succès pour <strong id="shareName"></strong>, code <span id="shareCode" style="font-family:'Fraunces',serif;letter-spacing:2px"></span>.
+      </div>
+    </div>
+
   </div>
 
 </div>
 
 <script>
+let activeCode = null;
+let activeName = '';
+let activeGender = 'non-precise';
+let showArchivedClients = false;
+let allClients = [];
+
 function showError(elId, msg) {
   document.getElementById(elId).innerHTML = msg ? `<div class="error">${msg}</div>` : "";
 }
@@ -271,7 +273,167 @@ function formatDate(iso) {
   const d = new Date(iso);
   return d.toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit' });
 }
+function genererCode() {
+  const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+  let code = "";
+  for (let i = 0; i < 6; i++) code += chars[Math.floor(Math.random() * chars.length)];
+  return code;
+}
 
+// ---- Mode nouveau / existant ----
+function setMode(mode) {
+  document.getElementById('btnModeNew').classList.toggle('active', mode === 'new');
+  document.getElementById('btnModeExisting').classList.toggle('active', mode === 'existing');
+  document.getElementById('modeNew').style.display = mode === 'new' ? 'block' : 'none';
+  document.getElementById('modeExisting').style.display = mode === 'existing' ? 'block' : 'none';
+  if (mode === 'existing') chargerClients();
+}
+
+async function genererNouveauClient() {
+  const name = document.getElementById('newClientName').value.trim();
+  const gender = document.getElementById('newClientGender').value;
+  showError('newClientError', '');
+  if (!name) { showError('newClientError', 'Entrez le prénom du client.'); return; }
+
+  const code = genererCode();
+  try {
+    await fetch('/.netlify/functions/save-client', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ code, name, gender })
+    });
+  } catch (e) {
+    showError('newClientError', "Impossible de créer le client, réessayez.");
+    return;
+  }
+
+  activerClient(code, name, gender);
+}
+
+// ---- Liste des clients existants ----
+async function chargerClients() {
+  showError('clientsError', '');
+  try {
+    const res = await fetch('/.netlify/functions/get-clients');
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || 'Erreur inconnue');
+    allClients = data.clients || [];
+    afficherClients();
+  } catch (err) {
+    showError('clientsError', "Impossible de charger la liste : " + err.message);
+  }
+}
+
+function toggleArchives() {
+  showArchivedClients = !showArchivedClients;
+  document.getElementById('btnToggleArchives').textContent = showArchivedClients ? 'Voir les clients actifs' : 'Voir les clients archivés';
+  afficherClients();
+}
+
+function filtrerClients() {
+  afficherClients();
+}
+
+function afficherClients() {
+  const search = document.getElementById('clientSearch').value.trim().toLowerCase();
+  let filtered = allClients.filter(c => !!c.archived === showArchivedClients);
+  if (search) {
+    filtered = filtered.filter(c => (c.name || '').toLowerCase().includes(search) || c.code.toLowerCase().includes(search));
+  }
+  filtered.sort((a, b) => (a.name || '').localeCompare(b.name || ''));
+
+  if (filtered.length === 0) {
+    document.getElementById('clientsList').innerHTML = `<div class="desc">${showArchivedClients ? 'Aucun client archivé.' : 'Aucun client pour le moment.'}</div>`;
+    return;
+  }
+
+  document.getElementById('clientsList').innerHTML = filtered.map(c => `
+    <div class="client-row">
+      <div class="infos" onclick="activerClient('${c.code}', '${(c.name || '').replace(/'/g, "\\'")}', '${c.gender || 'non-precise'}')">
+        <span class="nom">${(c.name || 'Sans nom').replace(/</g, '&lt;')}</span>
+        <span class="code">${c.code}</span>
+      </div>
+      <div class="actions">
+        ${showArchivedClients
+          ? `<button class="mini" onclick="archiverClient('${c.code}', false)">Désarchiver</button>`
+          : `<button class="mini" onclick="archiverClient('${c.code}', true)">Archiver</button>`}
+        <button class="mini danger" onclick="supprimerClient('${c.code}', '${(c.name || 'ce client').replace(/'/g, "\\'")}')">Supprimer</button>
+      </div>
+    </div>
+  `).join('');
+}
+
+async function archiverClient(code, archived) {
+  try {
+    await fetch('/.netlify/functions/archive-client', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ code, archived })
+    });
+    await chargerClients();
+  } catch (e) {
+    showError('clientsError', "Impossible de mettre à jour ce client.");
+  }
+}
+
+async function supprimerClient(code, name) {
+  const confirmation = window.confirm(`Supprimer définitivement ${name} (code ${code}) ? Son journal, ses comptes-rendus et son audio seront aussi effacés. Cette action est irréversible.`);
+  if (!confirmation) return;
+  try {
+    await fetch('/.netlify/functions/delete-client', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ code })
+    });
+    await chargerClients();
+    if (activeCode === code) changerClient();
+  } catch (e) {
+    showError('clientsError', "Impossible de supprimer ce client.");
+  }
+}
+
+// ---- Client actif ----
+function activerClient(code, name, gender) {
+  activeCode = code;
+  activeName = name;
+  activeGender = gender || 'non-precise';
+
+  document.getElementById('cardIdentify').style.display = 'none';
+  document.getElementById('cardActiveClient').style.display = 'flex';
+  document.getElementById('activeClientLabel').textContent = `${activeName} — ${activeCode}`;
+  document.getElementById('workflowSections').style.display = 'block';
+
+  window.scrollTo({ top: document.getElementById('cardActiveClient').offsetTop - 20, behavior: 'smooth' });
+}
+
+function changerClient() {
+  activeCode = null;
+  activeName = '';
+  activeGender = 'non-precise';
+
+  document.getElementById('cardIdentify').style.display = 'block';
+  document.getElementById('cardActiveClient').style.display = 'none';
+  document.getElementById('workflowSections').style.display = 'none';
+
+  document.getElementById('newClientName').value = '';
+  document.getElementById('notes').value = '';
+  document.getElementById('scriptText').value = '';
+  document.getElementById('cardScript').style.display = 'none';
+  document.getElementById('cardRecord').style.display = 'none';
+  document.getElementById('cardShare').style.display = 'none';
+  document.getElementById('shareResult').style.display = 'none';
+  document.getElementById('recPreview').style.display = 'none';
+  document.getElementById('crPreview').style.display = 'none';
+  document.getElementById('crTranscriptBlock').style.display = 'none';
+  document.getElementById('crResultBlock').style.display = 'none';
+  document.getElementById('btnTranscrire').style.display = 'none';
+  window.currentAudio = null;
+  crAudioData = null;
+
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+// ---- Historique automatique ----
 async function recupererHistorique(code) {
   let morceaux = [];
 
@@ -299,27 +461,19 @@ async function recupererHistorique(code) {
 async function genererScript() {
   const btn = document.getElementById('btnScript');
   const notes = document.getElementById('notes').value.trim();
-  const name = document.getElementById('clientName').value.trim();
-  const gender = document.getElementById('clientGender').value;
-  const code = document.getElementById('scriptCode').value.trim().toUpperCase();
   showError('scriptError', '');
-  if (!notes) { showError('scriptError', "Ajoutez d'abord votre analyse de suivi."); return; }
 
   btn.disabled = true;
-  btn.innerHTML = '<span class="spinner"></span>Rédaction en cours...';
+  btn.innerHTML = '<span class="spinner"></span>Récupération du dossier...';
 
-  let history = '';
   try {
-    if (code) {
-      btn.innerHTML = '<span class="spinner"></span>Récupération du dossier...';
-      history = await recupererHistorique(code);
-    }
+    const history = await recupererHistorique(activeCode);
 
     btn.innerHTML = '<span class="spinner"></span>Rédaction en cours...';
     const res = await fetch('/.netlify/functions/generate-script', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ name, notes, gender, history })
+      body: JSON.stringify({ name: activeName, notes, gender: activeGender, history })
     });
     const data = await res.json();
     if (!res.ok) throw new Error(data.error || 'Erreur inconnue');
@@ -376,7 +530,7 @@ async function demarrerEnregistrement() {
         document.getElementById('btnRecRestart').style.display = 'inline-block';
         document.getElementById('cardShare').style.display = 'block';
         if (blob.size > 5.5 * 1024 * 1024) {
-          showError('recError', `Attention : cet enregistrement fait ${tailleMo} Mo, c'est proche ou au-delà de la limite acceptée. Si le partage échoue à l'étape 4, recommencez avec un enregistrement plus court.`);
+          showError('recError', `Attention : cet enregistrement fait ${tailleMo} Mo, c'est proche ou au-delà de la limite acceptée. Recommencez avec un enregistrement plus court si le partage échoue.`);
         }
       };
       reader.readAsDataURL(blob);
@@ -399,19 +553,15 @@ async function demarrerEnregistrement() {
       const m = String(Math.floor(recSeconds / 60)).padStart(2, '0');
       const s = String(recSeconds % 60).padStart(2, '0');
       document.getElementById('recTimer').textContent = `${m}:${s}`;
-      if (recSeconds >= 480) {
-        document.getElementById('recTimer').className = 'rec-timer warn';
-      }
+      if (recSeconds >= 480) document.getElementById('recTimer').className = 'rec-timer warn';
     }, 1000);
   } catch (err) {
-    showError('recError', "Impossible d'accéder au micro : " + err.message + ". Vérifiez que vous avez autorisé l'accès au microphone pour ce site.");
+    showError('recError', "Impossible d'accéder au micro : " + err.message);
   }
 }
 
 function arreterEnregistrement() {
-  if (mediaRecorder && mediaRecorder.state !== 'inactive') {
-    mediaRecorder.stop();
-  }
+  if (mediaRecorder && mediaRecorder.state !== 'inactive') mediaRecorder.stop();
   clearInterval(recTimerInterval);
   document.getElementById('btnRecStart').style.display = 'inline-block';
   document.getElementById('btnRecStart').textContent = 'Démarrer l\'enregistrement';
@@ -489,9 +639,7 @@ async function crDemarrerEnregistrement() {
 }
 
 function crArreterEnregistrement() {
-  if (crMediaRecorder && crMediaRecorder.state !== 'inactive') {
-    crMediaRecorder.stop();
-  }
+  if (crMediaRecorder && crMediaRecorder.state !== 'inactive') crMediaRecorder.stop();
   clearInterval(crTimerInterval);
   document.getElementById('btnCrStart').style.display = 'inline-block';
   document.getElementById('btnCrStop').style.display = 'none';
@@ -557,11 +705,9 @@ async function structurerCr() {
 
 async function enregistrerNote() {
   const btn = document.getElementById('btnSaveNote');
-  const code = document.getElementById('crCode').value.trim().toUpperCase();
   const text = document.getElementById('crFinal').value.trim();
   showError('crSaveError', '');
   document.getElementById('crSaveSuccess').innerHTML = '';
-  if (!code) { showError('crSaveError', 'Entrez le code du client.'); return; }
   if (!text) { showError('crSaveError', 'Le compte-rendu est vide.'); return; }
 
   btn.disabled = true;
@@ -570,12 +716,12 @@ async function enregistrerNote() {
     const res = await fetch('/.netlify/functions/save-note', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ code, text })
+      body: JSON.stringify({ code: activeCode, text })
     });
     const data = await res.json();
     if (!res.ok) throw new Error(data.error || 'Erreur inconnue');
 
-    document.getElementById('crSaveSuccess').innerHTML = '<div class="progress">Compte-rendu enregistré dans le dossier de ce client.</div>';
+    document.getElementById('crSaveSuccess').innerHTML = '<div class="progress">Compte-rendu enregistré dans le dossier de ' + activeName + '.</div>';
   } catch (err) {
     showError('crSaveError', "Impossible d'enregistrer : " + err.message);
   } finally {
@@ -590,18 +736,13 @@ async function partagerSeance() {
   showError('shareError', '');
   if (!window.currentAudio) { showError('shareError', "Enregistrez d'abord l'audio."); return; }
 
-  const name = document.getElementById('clientName').value.trim() || 'votre client';
-  const script = document.getElementById('scriptText').value.trim();
-  const existing = document.getElementById('existingCode').value.trim().toUpperCase();
-  const code = existing || genererCode();
-
   btn.disabled = true;
-  btn.innerHTML = '<span class="spinner"></span>Enregistrement...';
+  btn.innerHTML = '<span class="spinner"></span>Partage en cours...';
   try {
     const res = await fetch('/.netlify/functions/save-session', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ code, clientName: name, script, audio: window.currentAudio })
+      body: JSON.stringify({ code: activeCode, clientName: activeName, script: document.getElementById('scriptText').value.trim(), audio: window.currentAudio })
     });
 
     let data;
@@ -613,153 +754,16 @@ async function partagerSeance() {
 
     if (!res.ok) throw new Error(data.error || 'Erreur inconnue');
 
-    await fetch('/.netlify/functions/save-client', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ code, name })
-    }).catch(() => {});
-
-    document.getElementById('shareName').textContent = name;
-    document.getElementById('shareCode').textContent = code;
+    document.getElementById('shareName').textContent = activeName;
+    document.getElementById('shareCode').textContent = activeCode;
     document.getElementById('shareResult').style.display = 'block';
     btn.style.display = 'none';
   } catch (err) {
-    showError('shareError', "Impossible de créer le code : " + err.message);
+    showError('shareError', "Impossible de partager : " + err.message);
   } finally {
     btn.disabled = false;
-    btn.innerHTML = "Créer / mettre à jour le code d'accès";
+    btn.innerHTML = "Partager cet audio";
   }
-}
-
-function genererCode() {
-  const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
-  let code = "";
-  for (let i = 0; i < 6; i++) code += chars[Math.floor(Math.random() * chars.length)];
-  return code;
-}
-
-function nouvelleSeance() {
-  document.getElementById('clientName').value = '';
-  document.getElementById('notes').value = '';
-  document.getElementById('scriptCode').value = '';
-  document.getElementById('scriptText').value = '';
-  document.getElementById('existingCode').value = '';
-  document.getElementById('recPreview').style.display = 'none';
-  document.getElementById('btnRecRestart').style.display = 'none';
-  document.getElementById('cardScript').style.display = 'none';
-  document.getElementById('cardRecord').style.display = 'none';
-  document.getElementById('cardShare').style.display = 'none';
-  document.getElementById('shareResult').style.display = 'none';
-  document.getElementById('btnShare').style.display = 'inline-block';
-  window.currentAudio = null;
-  window.scrollTo({ top: 0, behavior: 'smooth' });
-}
-
-async function genererCodeClient() {
-  const code = genererCode();
-  const name = document.getElementById('newClientName').value.trim();
-  document.getElementById('codeClientAffiche').textContent = code;
-  document.getElementById('codeClientResult').style.display = 'block';
-
-  try {
-    await fetch('/.netlify/functions/save-client', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ code, name })
-    });
-  } catch (e) { /* liste non critique, on continue même si ça échoue */ }
-}
-
-async function chargerClients() {
-  const btn = document.getElementById('btnClients');
-  showError('clientsError', '');
-  btn.disabled = true;
-  btn.innerHTML = '<span class="spinner"></span>Chargement...';
-  try {
-    const res = await fetch('/.netlify/functions/get-clients');
-    const data = await res.json();
-    if (!res.ok) throw new Error(data.error || 'Erreur inconnue');
-
-    if (!data.clients || data.clients.length === 0) {
-      document.getElementById('clientsList').innerHTML = '<div class="desc" style="margin-top:14px">Aucun client enregistré pour le moment.</div>';
-    } else {
-      const sorted = data.clients.slice().sort((a, b) => (a.name || '').localeCompare(b.name || ''));
-      document.getElementById('clientsList').innerHTML = sorted.map(c =>
-        `<div class="client-row" onclick="selectionnerClient('${c.code}')"><span class="nom">${(c.name || 'Sans nom').replace(/</g, '&lt;')}</span><span class="code">${c.code}</span></div>`
-      ).join('');
-    }
-  } catch (err) {
-    showError('clientsError', "Impossible de charger la liste : " + err.message);
-  } finally {
-    btn.disabled = false;
-    btn.textContent = 'Actualiser la liste';
-  }
-}
-
-function selectionnerClient(code) {
-  document.getElementById('dossierCode').value = code;
-  document.getElementById('dossierCode').scrollIntoView({ behavior: 'smooth', block: 'center' });
-  ouvrirDossier();
-}
-
-// ---- Dossier client unifié ----
-async function ouvrirDossier() {
-  const btn = document.getElementById('btnDossier');
-  const code = document.getElementById('dossierCode').value.trim().toUpperCase();
-  showError('dossierError', '');
-  document.getElementById('dossierContent').innerHTML = '';
-  if (!code) { showError('dossierError', 'Entrez un code client.'); return; }
-
-  btn.disabled = true;
-  btn.innerHTML = '<span class="spinner"></span>Chargement...';
-
-  let html = '';
-
-  try {
-    const sessionRes = await fetch('/.netlify/functions/get-session?code=' + encodeURIComponent(code));
-    if (sessionRes.ok) {
-      const sessionData = await sessionRes.json();
-      html += `<div class="dossier-sub">Audio actuel</div><div class="statut-audio">Une séance audio est disponible pour <strong>${sessionData.clientName}</strong>.</div>`;
-    } else {
-      html += `<div class="dossier-sub">Audio actuel</div><div class="statut-audio">Aucun audio enregistré pour ce code pour le moment.</div>`;
-    }
-  } catch (e) {
-    html += `<div class="dossier-sub">Audio actuel</div><div class="statut-audio">Aucun audio enregistré pour ce code pour le moment.</div>`;
-  }
-
-  try {
-    const journalRes = await fetch('/.netlify/functions/get-journal?code=' + encodeURIComponent(code));
-    const journalData = await journalRes.json();
-    html += '<div class="dossier-sub">Journal du client</div>';
-    if (!journalData.entries || journalData.entries.length === 0) {
-      html += '<div class="statut-audio">Aucune entrée pour le moment.</div>';
-    } else {
-      html += journalData.entries.slice().reverse().map(entry =>
-        `<div class="entry"><div class="entry-date">${formatDate(entry.date)}</div><div class="entry-text">${entry.text.replace(/</g, '&lt;')}</div></div>`
-      ).join('');
-    }
-  } catch (e) {
-    html += '<div class="dossier-sub">Journal du client</div><div class="statut-audio">Impossible de charger le journal.</div>';
-  }
-
-  try {
-    const notesRes = await fetch('/.netlify/functions/get-notes?code=' + encodeURIComponent(code));
-    const notesData = await notesRes.json();
-    html += '<div class="dossier-sub">Comptes-rendus enregistrés</div>';
-    if (!notesData.entries || notesData.entries.length === 0) {
-      html += '<div class="statut-audio">Aucun compte-rendu enregistré pour le moment.</div>';
-    } else {
-      html += notesData.entries.slice().reverse().map(entry =>
-        `<div class="entry"><div class="entry-date">${formatDate(entry.date)}</div><div class="entry-text">${entry.text.replace(/</g, '&lt;')}</div></div>`
-      ).join('');
-    }
-  } catch (e) {
-    html += '<div class="dossier-sub">Comptes-rendus enregistrés</div><div class="statut-audio">Impossible de charger les comptes-rendus.</div>';
-  }
-
-  document.getElementById('dossierContent').innerHTML = html;
-  btn.disabled = false;
-  btn.textContent = 'Ouvrir le dossier';
 }
 </script>
 </body>
