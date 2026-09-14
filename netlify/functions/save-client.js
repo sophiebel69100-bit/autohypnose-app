@@ -7,7 +7,7 @@ exports.handler = async (event) => {
 
   try {
     connectLambda(event);
-    const { code, name } = JSON.parse(event.body || '{}');
+    const { code, name, gender } = JSON.parse(event.body || '{}');
 
     if (!code) {
       return { statusCode: 400, body: JSON.stringify({ error: 'Code manquant.' }) };
@@ -22,9 +22,10 @@ exports.handler = async (event) => {
 
     const existing = list.find((c) => c.code === code);
     if (existing) {
-      existing.name = name || existing.name;
+      if (name) existing.name = name;
+      if (gender) existing.gender = gender;
     } else {
-      list.push({ code, name: name || '', createdAt: new Date().toISOString() });
+      list.push({ code, name: name || '', gender: gender || 'non-precise', archived: false, createdAt: new Date().toISOString() });
     }
 
     await store.set('index', JSON.stringify(list));
