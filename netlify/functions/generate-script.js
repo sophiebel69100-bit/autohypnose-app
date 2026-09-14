@@ -6,8 +6,11 @@ exports.handler = async (event) => {
   try {
     const { name, notes, gender, history } = JSON.parse(event.body || '{}');
 
-    if (!notes || !notes.trim()) {
-      return { statusCode: 400, body: JSON.stringify({ error: "L'analyse de suivi est vide." }) };
+    const notesPropres = (notes || '').trim();
+    const historyPropre = (history || '').trim();
+
+    if (!notesPropres && !historyPropre) {
+      return { statusCode: 400, body: JSON.stringify({ error: "Aucune information disponible : ajoutez une note du jour, ou choisissez un client dont le dossier contient déjà un historique." }) };
     }
 
     if (!process.env.ANTHROPIC_API_KEY) {
@@ -33,14 +36,7 @@ Consignes de langage hypnotique (à appliquer ensemble, selon la structure ci-de
 - Métaphore centrale : construis une image ou une petite histoire, adaptée à la problématique décrite, comme véhicule principal du travail thérapeutique pendant l'approfondissement.
 - Double contrainte thérapeutique en fin de script : propose un choix illusoire entre deux options qui mènent toutes deux au résultat souhaité (ex. "que tu choisisses d'ouvrir les yeux maintenant, ou de savourer encore un instant ce calme avant de le faire").
 
-Structure du script :
-1. Installation et pacing (ancrage respiration/corps, truismes)
-2. Approfondissement et leading (transition progressive)
-3. Travail métaphorique lié à la problématique décrite, ponctué de suggestions indirectes et de commandes enchâssées
-4. Suggestions positives personnalisées pour la suite
-5. Retour à l'éveil avec double contrainte thérapeutique
-
-Si un historique (journal du client et/ou comptes-rendus de séances précédentes) est fourni, utilise-le pour enrichir la personnalisation (thèmes récurrents, progrès mentionnés, éléments qui semblent importants pour cette personne) — mais l'analyse de suivi rédigée par la praticienne reste la source principale et prioritaire.
+Si un historique (journal du client et/ou comptes-rendus de séances précédentes) est fourni, base-toi dessus pour repérer les thèmes récurrents, l'évolution du client au fil du temps, et les points encore sensibles — c'est la source principale d'information si aucune note du jour n'est fournie. Si une note du jour est fournie en plus, elle vient préciser ou orienter le focus de cette séance en particulier.
 
 Consignes de forme :
 - Langue : français, tutoiement, ton calme et posé, phrases courtes, rythme lent adapté à une lecture audio.
@@ -49,10 +45,14 @@ Consignes de forme :
 - Longueur : environ 500 à 650 mots.
 - Réponds uniquement avec le texte du script, sans titre ni commentaire.`;
 
-    let userPrompt = `Prénom du client : ${name && name.trim() ? name.trim() : 'le client'}\n\nAnalyse de suivi transmise par la praticienne :\n${notes}`;
+    let userPrompt = `Prénom du client : ${name && name.trim() ? name.trim() : 'le client'}`;
 
-    if (history && history.trim()) {
-      userPrompt += `\n\nHistorique disponible (journal du client et comptes-rendus des séances précédentes, à titre de contexte complémentaire) :\n${history.trim()}`;
+    if (notesPropres) {
+      userPrompt += `\n\nNote du jour transmise par la praticienne :\n${notesPropres}`;
+    }
+
+    if (historyPropre) {
+      userPrompt += `\n\nHistorique disponible (journal du client et comptes-rendus des séances précédentes) :\n${historyPropre}`;
     }
 
     const response = await fetch('https://api.anthropic.com/v1/messages', {
